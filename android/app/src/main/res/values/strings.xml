@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      アプリの表示名。（2026年8月7日 木須様よりご決定）
+
+      変更するときは lib/core/app_identity.dart と
+      ios/Runner/Info.plist の CFBundleDisplayName も同じ値に揃えること。
+      手順は README の「アプリ名を変更する手順」に記載。
+    -->
+    <string name="app_name">キオクヲ</string>
+</resources>
