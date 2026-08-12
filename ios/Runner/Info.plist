@@ -6,8 +6,6 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<!-- アプリの表示名。変更時は lib/core/app_identity.dart と
-	     android/app/src/main/res/values/strings.xml も同じ値に揃えること。 -->
 	<key>CFBundleDisplayName</key>
 	<string>キオクヲ</string>
 	<key>CFBundleExecutable</key>
@@ -16,6 +14,10 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>ja</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>dai2_no_kioku</string>
 	<key>CFBundlePackageType</key>
@@ -28,21 +30,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<!-- マイクの利用理由。許可ダイアログにそのまま表示されるため、
-	     専門用語を使わず1文で説明する。（要件定義書 4.1）
-	     確定文言はヒトコト株式会社様よりご提供いただき差し替える。 -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>予定を声で登録するために、マイクを使います。</string>
-	<!-- 音声認識の利用理由。
-	     iOS の音声認識は、話した内容が Apple のサーバーで処理される場合がある。
-	     プライバシーポリシーの記載と必ず一致させること。 -->
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>話した内容を文字にして、予定として残します。</string>
-	<!-- 日本語を既定のローカライズとして扱う。 -->
-	<key>CFBundleLocalizations</key>
-	<array>
-		<string>ja</string>
-	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -25,9 +25,22 @@ import 'package:flutter_test/flutter_test.dart';
 /// 入れたときは --update-goldens で更新すること。
 ///
 /// テスト環境には日本語フォントが無く、そのままでは文字が豆腐になる。
-/// Windows に同梱されている Noto Sans JP を読み込んで描画する。
-const _fontPath = r'C:\Windows\Fonts\NotoSansJP-VF.ttf';
+/// プラットフォームごとに Noto Sans JP のパスを解決して読み込む。
 const _fontFamily = 'NotoSansJP';
+
+String? _resolveFontPath() {
+  if (Platform.isWindows) return r'C:\Windows\Fonts\NotoSansJP-VF.ttf';
+  if (Platform.isMacOS) {
+    const candidates = [
+      '/Library/Fonts/NotoSansJP-VF.ttf',
+      '/Library/Fonts/NotoSansJP.ttf',
+    ];
+    for (final p in candidates) {
+      if (File(p).existsSync()) return p;
+    }
+  }
+  return null;
+}
 
 final _cardDate = DateTime(2026, 7, 21);
 
@@ -190,10 +203,14 @@ Future<void> _shootScreen(
 
 void main() {
   setUpAll(() async {
-    final bytes = await File(_fontPath).readAsBytes();
-    final loader = FontLoader(_fontFamily)
-      ..addFont(Future.value(ByteData.view(Uint8List.fromList(bytes).buffer)));
-    await loader.load();
+    final fontPath = _resolveFontPath();
+    if (fontPath != null) {
+      final bytes = await File(fontPath).readAsBytes();
+      final loader = FontLoader(_fontFamily)
+        ..addFont(
+            Future.value(ByteData.view(Uint8List.fromList(bytes).buffer)));
+      await loader.load();
+    }
   });
 
   testWidgets('当日朝のカード', (tester) async {
