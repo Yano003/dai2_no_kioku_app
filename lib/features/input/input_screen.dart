@@ -118,65 +118,77 @@ class _InputScreenState extends ConsumerState<InputScreen> {
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
           child: Column(
             children: [
-              // 画面の最上部に貼り付くと詰まった印象になるため、見出しの上に
-              // ゆとりを取る。
-              const SizedBox(height: 32),
-              // 画面イメージの見出し。この画面が何をする場所かを最初に示す。
-              // カードの見出しと同じ大きさにして、この画面の主役だと分かるようにする。
-              Text(
-                AppStrings.registerScreenTitle,
-                style: theme.textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
+              // 見出しからアイコンまでを1つのまとまりとして、下のボタンとの間の
+              // 余白の中で上下中央に置く。上端に貼り付けると詰まって見え、
+              // アイコンの下だけが大きく空いてしまうため。（お客様ご指摘）
+              //
+              // 文字を大きくして収まらなくなったときはスクロールに切り替わる。
+              // そのため中央寄せは「余白があるときだけ」効く形にしている。
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 40),
-                      Text(
-                        _listening
-                            ? AppStrings.inputListening
-                            : AppStrings.inputPrompt,
-                        style: theme.textTheme.bodyLarge,
-                        textAlign: TextAlign.center,
+                child: LayoutBuilder(
+                  builder: (context, constraints) => SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
                       ),
-                      const SizedBox(height: 32),
-                      _MicButton(
-                        listening: _listening,
-                        enabled: !_initializing && _available,
-                        onPressed: _listening ? _stopListening : _startListening,
-                      ),
-                      const SizedBox(height: 24),
-                      if (_listening) ...[
-                        // 認識途中の文字を出して「聞こえている」ことを伝える。
-                        Text(
-                          _recognized,
-                          style: theme.textTheme.bodyLarge,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        // 無音での自動停止だけに頼らず、明示的な停止も置く。
-                        OutlinedButton(
-                          onPressed: _stopListening,
-                          child: const Text(AppStrings.inputStop),
-                        ),
-                      ] else ...[
-                        if (_errorMessage != null)
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // この画面が何をする場所かを最初に示す見出し。
+                          // 画面の主役として、カードの見出しより一段大きく取る。
                           Text(
-                            _errorMessage!,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.error,
-                            ),
+                            AppStrings.registerScreenTitle,
+                            style: theme.textTheme.headlineMedium,
                             textAlign: TextAlign.center,
                           ),
-                        if (!_initializing && !_available)
+                          const SizedBox(height: 40),
                           Text(
-                            AppStrings.errorSpeechUnavailable,
+                            _listening
+                                ? AppStrings.inputListening
+                                : AppStrings.inputPrompt,
                             style: theme.textTheme.bodyLarge,
                             textAlign: TextAlign.center,
                           ),
-                      ],
-                    ],
+                          const SizedBox(height: 32),
+                          _MicButton(
+                            listening: _listening,
+                            enabled: !_initializing && _available,
+                            onPressed:
+                                _listening ? _stopListening : _startListening,
+                          ),
+                          const SizedBox(height: 24),
+                          if (_listening) ...[
+                            // 認識途中の文字を出して「聞こえている」ことを伝える。
+                            Text(
+                              _recognized,
+                              style: theme.textTheme.bodyLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            // 無音での自動停止だけに頼らず、明示的な停止も置く。
+                            OutlinedButton(
+                              onPressed: _stopListening,
+                              child: const Text(AppStrings.inputStop),
+                            ),
+                          ] else ...[
+                            if (_errorMessage != null)
+                              Text(
+                                _errorMessage!,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: theme.colorScheme.error,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            if (!_initializing && !_available)
+                              Text(
+                                AppStrings.errorSpeechUnavailable,
+                                style: theme.textTheme.bodyLarge,
+                                textAlign: TextAlign.center,
+                              ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

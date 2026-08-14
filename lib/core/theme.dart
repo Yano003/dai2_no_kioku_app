@@ -56,6 +56,13 @@ class AppTheme {
       // OS の文字サイズ設定は Flutter が自動で掛け算するため、
       // 利用者が拡大すればここで指定した値からさらに大きくなる。
       textTheme: const TextTheme(
+        // 画面そのものの見出し（S-02「『今日の安心カード』登録」）。
+        // その画面の主役として、カードの見出しより一段大きく取る。
+        headlineMedium: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w600,
+          height: 1.35,
+        ),
         // カードの見出し（「今日は3つ覚えておけば大丈夫です」など）
         headlineSmall: TextStyle(
           fontSize: 25,
