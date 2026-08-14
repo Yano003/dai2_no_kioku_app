@@ -172,7 +172,7 @@ class AppStrings {
   static const notifySetupTitle = 'お知らせの時刻';
 
   /// 逆算した初期値を提示していることの説明。全角40文字以内。（要件定義書 6.2）
-  static const notifySetupDescription = 'お休みになる時刻とお起きになる時刻から、お知らせの時刻をご用意しました。';
+  static const notifySetupDescription = 'お休みになる時刻とお起きになる時刻から、お知らせの時刻を下記に設定します。';
 
   static const notifySetupNightLabel = '前の日の夜';
   static const notifySetupNightHint = '明日の予定をお知らせします';
@@ -322,7 +322,7 @@ class AppStrings {
   static const settingsNotifySection = 'お知らせの時刻';
 
   static const settingsSleepSection = 'いつもの時刻';
-  static const settingsSleepLabel = 'おやすみになる時刻';
+  static const settingsSleepLabel = 'お休みになる時刻';
   static const settingsWakeLabel = 'お起きになる時刻';
 
   /// 起床・就寝を変えると通知時刻も追随することの説明。全角40文字以内。
