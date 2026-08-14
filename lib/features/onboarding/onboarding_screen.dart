@@ -164,6 +164,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         return _StepLayout(
           title: AppStrings.onboardingSleepQuestion,
           body: AppStrings.onboardingSleepBody,
+          // 起床時刻の画面と同じく、ここで決めきらなくてよいことを添える。
+          note: AppStrings.onboardingLaterNote,
           icon: Icons.bedtime_outlined,
           content: _TimeButton(
             time: _sleepTime,

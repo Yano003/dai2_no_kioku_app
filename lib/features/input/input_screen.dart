@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/app_assets.dart';
 import '../../core/app_strings.dart';
 import '../../core/theme.dart';
 import '../../domain/parser/schedule_parser.dart';
@@ -119,17 +118,21 @@ class _InputScreenState extends ConsumerState<InputScreen> {
           padding: const EdgeInsets.symmetric(horizontal: AppTheme.gutter),
           child: Column(
             children: [
-              const SizedBox(height: 12),
+              // 画面の最上部に貼り付くと詰まった印象になるため、見出しの上に
+              // ゆとりを取る。
+              const SizedBox(height: 32),
               // 画面イメージの見出し。この画面が何をする場所かを最初に示す。
+              // カードの見出しと同じ大きさにして、この画面の主役だと分かるようにする。
               Text(
                 AppStrings.registerScreenTitle,
-                style: theme.textTheme.titleLarge,
+                style: theme.textTheme.headlineSmall,
+                textAlign: TextAlign.center,
               ),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 40),
                       Text(
                         _listening
                             ? AppStrings.inputListening
@@ -226,8 +229,9 @@ class _MicButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    // 画面イメージのアイコンは「話す横顔＋音波」を四角い枠で囲んだもの。
-    // ご提供いただいた線画をそのまま使い、角丸の四角い枠に収める。
+    // 音声入力を表すアイコンは、初回案内「声で登録するために」で使っている
+    // マイクに揃える。同じ「声で入れる」操作が画面ごとに違う絵柄で出てくると、
+    // 別の機能に見えてしまうため。（お客様ご指摘）
     return Semantics(
       button: true,
       label: listening ? AppStrings.inputStop : AppStrings.inputPrompt,
@@ -258,12 +262,9 @@ class _MicButton extends StatelessWidget {
           child: Center(
             child: listening
                 ? Icon(Icons.stop_rounded, size: 76, color: colors.onPrimary)
-                : Image.asset(
-                    AppAssets.speakingHead,
-                    width: 84,
-                    height: 84,
-                    fit: BoxFit.contain,
-                    // 素材は黒一色の線画。枠の色に合わせて塗り替える。
+                : Icon(
+                    Icons.mic_none_outlined,
+                    size: 84,
                     color: enabled ? colors.primary : colors.outline,
                   ),
           ),

@@ -66,10 +66,17 @@ class AppStrings {
   static const onboardingLaterNote = 'あとから設定で変えられます。';
 
   /// 起床・就寝時刻のヒアリング。（要件定義書 6.2）
-  static const onboardingSleepQuestion = 'いつも何時ごろお休みになりますか';
-  static const onboardingSleepBody = 'お知らせの時刻を決めるために伺います。';
-  static const onboardingWakeQuestion = 'いつも何時ごろお起きになりますか';
-  static const onboardingWakeBody = 'お知らせの時刻を決めるために伺います。';
+  ///
+  /// 伺った時刻そのものではなく、その30分前にお知らせすることを本文で添える。
+  /// 何のために時刻を尋ねられているのかが分からないまま操作させないため。
+  /// 「30分」は AppConfig.notificationOffsetBeforeSleep ／
+  /// AppConfig.notificationOffsetBeforeWake と対で変更すること。
+  static const onboardingSleepQuestion = 'いつも何時ごろお休みになりますか？';
+  static const onboardingSleepBody = 'お知らせの時刻を決めるために伺います。\n'
+      '設定した時刻のおよそ30分前に、そっとお知らせします。';
+  static const onboardingWakeQuestion = 'いつも何時ごろお起きになりますか？';
+  static const onboardingWakeBody = 'お知らせの時刻を決めるために伺います。\n'
+      'およそ30分前にそっとお知らせします。';
 
   /// 時刻を選ぶボタンの補助ラベル。
   static const onboardingTapToChange = 'タップして変える';
@@ -91,7 +98,7 @@ class AppStrings {
   /// 画面イメージでは「下のアイコンを押しながら…」だが、入力方式は
   /// 「タップで録音」に確定したため（要件定義書 11.1 No.1）、
   /// 押しながらではなくタップである旨に合わせている。
-  static const inputPrompt = '下のアイコンを押して\nいつ・何をするか\n話しかけてください';
+  static const inputPrompt = '下のアイコンを押して\nいつ・何をするか\n話しかけてください。';
 
   /// 録音中の表示。
   static const inputListening = '聞いています';
