@@ -154,13 +154,35 @@ void main() {
     expect(repository.inserted, ['歯医者', '薬']);
   });
 
-  testWidgets('空きがあるときは残り件数を伝える', (tester) async {
+  testWidgets('空きがあるときは「登録後」の残り件数を伝える', (tester) async {
+    // 画面に出ているのはこれから登録される分なので、その件数を差し引いた
+    // 登録後の残りを見せる。差し引かないと登録前後で数が食い違う。
+    // （お客様ご指摘）
     await pumpConfirm(tester, remaining: 3, items: [_item('歯医者')]);
 
     expect(
-      find.text(AppStrings.withCount(AppStrings.confirmRemaining, 3)),
+      find.text(AppStrings.withCount(AppStrings.confirmRemaining, 2)),
       findsOneWidget,
     );
+    expect(
+      find.text(AppStrings.withCount(AppStrings.confirmRemaining, 3)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('登録するとちょうど上限に達する日でも登録できる', (tester) async {
+    // 登録後の残りが0件になるのは「もう登録できない」ではなく
+    // 「これで埋まる」という意味。登録そのものは妨げない。
+    final repository =
+        await pumpConfirm(tester, remaining: 1, items: [_item('歯医者')]);
+
+    expect(find.text(AppStrings.confirmLimitBadge), findsOneWidget);
+    expect(tester.widget<FilledButton>(_registerButton).onPressed, isNotNull);
+
+    await tester.tap(_registerButton);
+    await tester.pumpAndSettle();
+
+    expect(repository.inserted, ['歯医者']);
   });
 
   test('上限値は1箇所で定義されている', () {

@@ -42,30 +42,51 @@ class _TextInputScreenState extends State<TextInputScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: _controller,
-                autofocus: true,
-                // 話し言葉のまま入力しても解析できるため、複数行を許す。
-                maxLines: 3,
-                minLines: 1,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _submit(),
-                decoration: const InputDecoration(
-                  hintText: AppStrings.textInputHint,
+              // キーボードが出ると本文の領域はその分だけ狭くなる。
+              // 入力欄と例示はスクロールさせ、「確認する」は隠れないよう
+              // 常に最下部に置く。
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextField(
+                        controller: _controller,
+                        // 画面を開いた時点でキーボードが上がるようにする。
+                        // 実機ではこれで入力を始められる（シミュレータで
+                        // ソフトウェアキーボードが出ないのは、Mac の
+                        // ハードウェアキーボードが接続されているため）。
+                        autofocus: true,
+                        // 話し言葉のまま入力しても解析できるため、複数行を許す。
+                        maxLines: 3,
+                        minLines: 1,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _submit(),
+                        decoration: const InputDecoration(
+                          hintText: AppStrings.textInputHint,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      for (final example in AppStrings.inputExamples)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(
+                            example,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
-              for (final example in AppStrings.inputExamples)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Text(
-                    example,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                ),
-              const Spacer(),
               FilledButton(
                 onPressed: _submit,
                 child: const Text(AppStrings.textInputConfirm),

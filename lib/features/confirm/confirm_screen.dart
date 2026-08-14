@@ -109,6 +109,21 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     ];
   }
 
+  /// この画面の内容を登録したあと、その日にあと何件入れられるか。
+  ///
+  /// 表示しているのはこれから登録される分なので、既存の空きからその件数を
+  /// 差し引いた「登録後」の残りを見せる。差し引かないと、登録前と登録後で
+  /// 数が食い違って見える。（お客様ご指摘）
+  /// null は未取得または日付未確定。
+  int? _remainingAfterRegister(DateTime date) {
+    final key = dateOnly(date);
+    final current = _remaining[key];
+    if (current == null) return null;
+    final requested = _requestedPerDate[key] ?? 0;
+    final after = current - requested;
+    return after < 0 ? 0 : after;
+  }
+
   /// 上限を超えてしまう日。1件も入らない日と、入りきらない日の両方を含む。
   List<DateTime> get _overCapacityDates {
     final over = <DateTime>[];
@@ -225,7 +240,9 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                     editing: _editing,
                     remaining: group.date == null
                         ? null
-                        : _remaining[group.date!],
+                        : _remainingAfterRegister(group.date!),
+                    blocked: group.date != null &&
+                        _overCapacityDates.contains(group.date),
                     onChanged: () => setState(() {}),
                     // 日付が変わると対象日の空き状況も変わるため読み直す。
                     onDateChanged: () {
@@ -319,6 +336,7 @@ class _DraftCard extends StatelessWidget {
     required this.drafts,
     required this.editing,
     required this.remaining,
+    required this.blocked,
     required this.onChanged,
     required this.onDateChanged,
   });
@@ -329,8 +347,12 @@ class _DraftCard extends StatelessWidget {
   final List<_DraftSchedule> drafts;
   final bool editing;
 
-  /// この日にあと何件登録できるか。null は未取得または日付未確定。
+  /// 登録後にこの日へあと何件入れられるか。null は未取得または日付未確定。
   final int? remaining;
+
+  /// 上限を超えるため、この日には登録できない状態か。
+  /// 登録した結果ちょうど上限に達する場合（残り0件）と区別する。
+  final bool blocked;
 
   final VoidCallback onChanged;
   final VoidCallback onDateChanged;
@@ -353,8 +375,12 @@ class _DraftCard extends StatelessWidget {
                       dateOnly(date!).difference(dateOnly(DateTime.now())).inDays,
                       date!,
                     ),
+              // 登録後のカードと同じブランドカラーで揃える。
+              // 日付が聞き取れていない場合だけ、直すべき箇所として赤で示す。
               style: theme.textTheme.titleLarge?.copyWith(
-                color: date == null ? theme.colorScheme.error : null,
+                color: date == null
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.primary,
               ),
             ),
             if (date != null) ...[
@@ -386,7 +412,7 @@ class _DraftCard extends StatelessWidget {
                         remaining!,
                       ),
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: remaining! <= 0
+                  color: blocked
                       ? theme.colorScheme.error
                       : theme.colorScheme.onSurfaceVariant,
                 ),

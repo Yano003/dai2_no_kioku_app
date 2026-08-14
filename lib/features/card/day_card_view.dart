@@ -53,7 +53,14 @@ class DayCardView extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // カードの名前。当日夜だけは締めの挨拶が見出しになる。
-              Text(_titleFor(card), style: theme.textTheme.titleLarge),
+              // ブランドカラーで置き、このカードが何のカードかを最初に伝える。
+              // （お客様ご指摘）
+              Text(
+                _titleFor(card),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(
                 fullDateLabel(card.date),

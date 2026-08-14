@@ -101,7 +101,7 @@ class AppStrings {
   static const inputPrompt = '下のアイコンを押して\nいつ・何をするか\n話しかけてください。';
 
   /// 録音中の表示。
-  static const inputListening = '聞いています';
+  static const inputListening = '聞いています。';
 
   /// 全角20文字以内。
   static const inputStop = '話し終わりました';
@@ -292,7 +292,7 @@ class AppStrings {
 
   /// 音声での言い直し。（要件定義書 4.7）
   static const editReRecord = '話して直す';
-  static const editListening = '聞いています';
+  static const editListening = '聞いています。';
 
   /// 削除確認。
   static const editDeleteConfirm = 'この予定を削除しますか';
@@ -365,7 +365,7 @@ class AppStrings {
   // ---------------------------------------------------------------------------
 
   /// 聞き取れなかった場合。「聞き取れませんでした」で終わらせない。（要件定義書 4.9）
-  static const errorSpeechEmpty = 'もう一度、お願いします';
+  static const errorSpeechEmpty = 'もう一度、お願いします。';
 
   /// 一部だけ聞き取れた場合の案内。
   static const errorSpeechPartial = '聞き取れた分を残しました。日付をお選びください。';
