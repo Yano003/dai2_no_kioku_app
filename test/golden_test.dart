@@ -283,21 +283,18 @@ void main() {
     );
   });
 
-  testWidgets('当日夜のカード（全完了）', (tester) async {
+  testWidgets('前日夜のカード（予定なし）', (tester) async {
+    // 「明日の予定はありません。」だけを出し、空の一覧は置かない。
+    // （お客様ご指摘 2026/08/17）
     await _shoot(
       tester,
       DayCardView(
-        card: _card(
-          variant: CardVariant.nightAllDone,
-          dayOffset: 0,
-          entries: [_entry('朝食後に薬', completed: true)],
-        ),
+        card: _card(variant: CardVariant.previousNight, dayOffset: 1),
         onToggleEntry: (_) {},
         onEditEntry: (_) {},
         onAcknowledge: () {},
-        onOpenTomorrow: () {},
       ),
-      'card_night_all_done',
+      'card_previous_night_empty',
     );
   });
 

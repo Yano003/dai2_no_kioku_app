@@ -88,7 +88,13 @@ void main() {
       ),
     );
 
-    expect(find.text(AppStrings.cardEmpty), findsOneWidget);
+    // どの日のカードかが本文だけで分かるようにする。（お客様ご指摘 2026/08/17）
+    expect(
+      find.text(
+        AppStrings.fill(AppStrings.cardEmpty, {'day': AppStrings.cardToday}),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('当日日中のカードにボタンを置かない', (tester) async {

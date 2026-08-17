@@ -32,20 +32,17 @@ DayCard _card({
   required CardVariant variant,
   required int dayOffset,
   List<ScheduleEntry> entries = const [],
+  bool acknowledged = false,
 }) =>
     DayCard(
       date: _cardDate,
       entries: entries,
       variant: variant,
-      acknowledged: false,
+      acknowledged: acknowledged,
       dayOffset: dayOffset,
     );
 
-Future<void> _pump(
-  WidgetTester tester,
-  DayCard card, {
-  VoidCallback? onOpenTomorrow,
-}) async {
+Future<void> _pump(WidgetTester tester, DayCard card) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
@@ -54,7 +51,6 @@ Future<void> _pump(
           onToggleEntry: (_) {},
           onEditEntry: (_) {},
           onAcknowledge: () {},
-          onOpenTomorrow: onOpenTomorrow,
         ),
       ),
     ),
@@ -134,44 +130,59 @@ void main() {
       expect(find.text(AppStrings.cardGoodNight), findsOneWidget);
       expect(find.byType(Checkbox), findsOneWidget);
     });
-  });
 
-  group('当日夜のカード', () {
-    testWidgets('予定一覧は出さず、明日のカードへ促す', (tester) async {
-      // 画面イメージ「当日夜①」：一日を締める表示で、予定一覧は出さない。
-      var opened = false;
+    testWidgets('予定がない日はどの日のことか分かる本文になる', (tester) async {
+      // 上下スクロールで日付を行き来する画面のため、本文だけを見ても
+      // 取り違えないようにする。（お客様ご指摘 2026/08/17）
+      await _pump(
+        tester,
+        _card(variant: CardVariant.previousNight, dayOffset: 1),
+      );
+
+      expect(
+        find.text(
+          AppStrings.fill(AppStrings.cardEmpty, {'day': AppStrings.cardTomorrow}),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('おやすみなさいを押した後は、その言葉がそのまま残る', (tester) async {
+      // 別の一文に差し替えると、押した操作と表示がつながらない。
+      // （お客様ご指摘 2026/08/17）
       await _pump(
         tester,
         _card(
-          variant: CardVariant.nightAllDone,
+          variant: CardVariant.previousNight,
+          dayOffset: 1,
+          entries: [_entry('朝食後に薬')],
+          acknowledged: true,
+        ),
+      );
+
+      expect(find.text(AppStrings.cardGoodNight), findsOneWidget);
+      expect(find.byType(FilledButton), findsNothing);
+    });
+  });
+
+  group('当日のカード', () {
+    testWidgets('夜になっても一日を締める専用の表示は出さない', (tester) async {
+      // 当日夜のカードは廃止した。夜の通知からは明日のカードを直接開くため、
+      // 当日のカードを別の表情に切り替えると二重になる。
+      // （お客様ご指摘 2026/08/17）
+      await _pump(
+        tester,
+        _card(
+          variant: CardVariant.daytime,
           dayOffset: 0,
           entries: [_entry('歯医者', completed: true)],
         ),
-        onOpenTomorrow: () => opened = true,
       );
 
-      expect(find.text(AppStrings.cardTitleNight), findsOneWidget);
-      expect(find.text(AppStrings.cardNightAllDone), findsOneWidget);
-      expect(find.text(AppStrings.cardNightNext), findsOneWidget);
-      expect(find.byType(Checkbox), findsNothing);
-
-      await tester.tap(find.text(AppStrings.cardOpenTomorrow));
-      expect(opened, isTrue);
-    });
-
-    testWidgets('やり残しがある場合は文言が変わる', (tester) async {
-      await _pump(
-        tester,
-        _card(
-          variant: CardVariant.nightRemaining,
-          dayOffset: 0,
-          entries: [_entry('歯医者')],
-        ),
-        onOpenTomorrow: () {},
-      );
-
-      expect(find.text(AppStrings.cardNightRemaining), findsOneWidget);
-      expect(find.text(AppStrings.cardNightAllDone), findsNothing);
+      expect(find.text(AppStrings.cardTitleToday), findsOneWidget);
+      expect(find.text('歯医者'), findsOneWidget);
+      expect(find.byType(Checkbox), findsOneWidget);
+      expect(find.byType(FilledButton), findsNothing);
     });
   });
 

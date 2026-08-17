@@ -175,10 +175,6 @@ class _CardScreenState extends ConsumerState<CardScreen> {
                                 onToggleEntry: _toggleEntry,
                                 onEditEntry: _openEdit,
                                 onAcknowledge: () => _acknowledge(date),
-                                // 当日夜のカードから明日のカードへ促す。
-                                onOpenTomorrow: () => _jumpToDate(
-                                  date.add(const Duration(days: 1)),
-                                ),
                               ),
                       ),
                     );

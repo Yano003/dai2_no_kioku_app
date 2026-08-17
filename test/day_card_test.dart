@@ -71,17 +71,20 @@ void main() {
       );
     });
 
-    test('夜の通知時刻以降、全完了なら「当日夜（全完了）」', () {
+    test('夜の通知時刻を過ぎても「当日日中」のまま', () {
+      // 一日を締める専用の表示（当日夜）は持たない。夜に主役になるのは
+      // 翌日のカードで、通知からもそちらを直接開く。
+      // （お客様ご指摘 2026/08/17）
       final card = _card(
         cardDate: today,
         now: DateTime(2026, 8, 4, 22, 0),
         entries: [_entry(today, completed: true)],
       );
-      expect(card.variant, CardVariant.nightAllDone);
+      expect(card.variant, CardVariant.daytime);
       expect(card.allCompleted, isTrue);
     });
 
-    test('夜の通知時刻以降、やり残しがあれば「当日夜（やり残しあり）」', () {
+    test('夜の通知時刻を過ぎてもやり残しは数えられる', () {
       final card = _card(
         cardDate: today,
         now: DateTime(2026, 8, 4, 22, 0),
@@ -90,17 +93,17 @@ void main() {
           _entry(today),
         ],
       );
-      expect(card.variant, CardVariant.nightRemaining);
+      expect(card.variant, CardVariant.daytime);
       expect(card.remainingCount, 1);
       expect(card.completedCount, 1);
     });
 
     test('予定が0件の日は全完了扱いにしない', () {
-      // 何も無い日を「すべてできました」と祝うのは体験として不自然。
+      // 何も無い日を「すべてできました」と数えるのは実態と合わない。
       final card = _card(cardDate: today, now: DateTime(2026, 8, 4, 22, 0));
       expect(card.isEmpty, isTrue);
       expect(card.allCompleted, isFalse);
-      expect(card.variant, CardVariant.nightRemaining);
+      expect(card.variant, CardVariant.daytime);
     });
   });
 

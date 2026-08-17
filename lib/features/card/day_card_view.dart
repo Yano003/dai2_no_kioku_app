@@ -21,7 +21,6 @@ class DayCardView extends StatelessWidget {
     required this.onToggleEntry,
     required this.onEditEntry,
     required this.onAcknowledge,
-    this.onOpenTomorrow,
   });
 
   final DayCard card;
@@ -32,9 +31,6 @@ class DayCardView extends StatelessWidget {
 
   /// 「おやすみなさい」「いってらっしゃい」を押したとき。
   final VoidCallback onAcknowledge;
-
-  /// 当日夜のカードから「明日の安心カード」へ移動する。
-  final VoidCallback? onOpenTomorrow;
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +48,10 @@ class DayCardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // カードの名前。当日夜だけは締めの挨拶が見出しになる。
-              // ブランドカラーで置き、このカードが何のカードかを最初に伝える。
-              // （お客様ご指摘）
+              // カードの名前。ブランドカラーで置き、このカードが
+              // 何のカードかを最初に伝える。（お客様ご指摘）
               Text(
-                _titleFor(card),
+                cardName(card.dayOffset, card.date),
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: theme.colorScheme.primary,
                 ),
@@ -70,43 +65,28 @@ class DayCardView extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               _Message(card: card),
-              if (card.showsEntries) ...[
-                const SizedBox(height: 12),
-                // 予定がない日は本文の「予定はありません」だけを出し、
-                // 空の一覧や不足を思わせる表示は置かない。（要件定義書 4.9）
-                ...card.entries.map(
-                  (entry) => _EntryRow(
-                    entry: entry,
-                    enabled: card.isCheckable,
-                    onToggle: () => onToggleEntry(entry),
-                    onEdit: () => onEditEntry(entry),
-                  ),
+              const SizedBox(height: 12),
+              // 予定がない日は本文の「明日の予定はありません。」だけを出し、
+              // 空の一覧や不足を思わせる表示は置かない。（要件定義書 4.9）
+              ...card.entries.map(
+                (entry) => _EntryRow(
+                  entry: entry,
+                  enabled: card.isCheckable,
+                  onToggle: () => onToggleEntry(entry),
+                  onEdit: () => onEditEntry(entry),
                 ),
-              ],
+              ),
               _ClosingLine(card: card),
               const SizedBox(height: 12),
               _ActionButton(
                 card: card,
                 onAcknowledge: onAcknowledge,
-                onOpenTomorrow: onOpenTomorrow,
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  /// カードの名前。
-  ///
-  /// 当日夜は一日を締める挨拶が見出しになる。それ以外は
-  /// 今日／明日／昨日、あるいは日付を冠した名前にする。
-  static String _titleFor(DayCard card) {
-    if (card.variant == CardVariant.nightAllDone ||
-        card.variant == CardVariant.nightRemaining) {
-      return AppStrings.cardTitleNight;
-    }
-    return cardName(card.dayOffset, card.date);
   }
 }
 
@@ -127,29 +107,28 @@ class _Message extends StatelessWidget {
 
   static String _messageFor(DayCard card) {
     switch (card.variant) {
-      // 当日夜は予定一覧を出さないため、件数にかかわらず締めの文を出す。
-      case CardVariant.nightAllDone:
-        return AppStrings.cardNightAllDone;
-      case CardVariant.nightRemaining:
-        return AppStrings.cardNightRemaining;
-
       case CardVariant.previousNight:
-        return card.isEmpty
-            ? AppStrings.cardEmpty
-            : AppStrings.cardPreviousNight;
+        return card.isEmpty ? _empty(card) : AppStrings.cardPreviousNight;
       case CardVariant.morning:
         return card.isEmpty
-            ? AppStrings.cardEmpty
+            ? _empty(card)
             : AppStrings.withCount(AppStrings.cardMorning, card.total);
       case CardVariant.daytime:
         // 日中は予定一覧が主役。見出しで急かさない。
-        return card.isEmpty ? AppStrings.cardEmpty : '';
+        return card.isEmpty ? _empty(card) : '';
       case CardVariant.future:
-        return card.isEmpty ? AppStrings.cardEmpty : AppStrings.cardFuture;
+        return card.isEmpty ? _empty(card) : AppStrings.cardFuture;
       case CardVariant.past:
-        return card.isEmpty ? AppStrings.cardEmpty : AppStrings.cardPast;
+        return card.isEmpty ? _empty(card) : AppStrings.cardPast;
     }
   }
+
+  /// 予定がない日の本文。「明日の予定はありません。」のように、
+  /// どの日のことかを本文だけで分かるようにする。（お客様ご指摘 2026/08/17）
+  static String _empty(DayCard card) => AppStrings.fill(
+        AppStrings.cardEmpty,
+        {'day': cardDayLabel(card.dayOffset, card.date)},
+      );
 }
 
 /// 予定一覧の下に添える一文。
@@ -179,9 +158,6 @@ class _ClosingLine extends StatelessWidget {
     switch (card.variant) {
       case CardVariant.previousNight:
         return card.isEmpty ? null : AppStrings.cardPreviousNightClosing;
-      case CardVariant.nightAllDone:
-      case CardVariant.nightRemaining:
-        return AppStrings.cardNightNext;
       case CardVariant.morning:
       case CardVariant.daytime:
       case CardVariant.future:
@@ -309,38 +285,24 @@ class _ActionButton extends StatelessWidget {
   const _ActionButton({
     required this.card,
     required this.onAcknowledge,
-    required this.onOpenTomorrow,
   });
 
   final DayCard card;
   final VoidCallback onAcknowledge;
-  final VoidCallback? onOpenTomorrow;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // 当日夜は明日のカードへ促す。（画面イメージ「当日夜①」）
-    final isNight = card.variant == CardVariant.nightAllDone ||
-        card.variant == CardVariant.nightRemaining;
-    if (isNight) {
-      if (onOpenTomorrow == null) return const SizedBox.shrink();
-      return Align(
-        alignment: Alignment.centerRight,
-        child: FilledButton(
-          onPressed: onOpenTomorrow,
-          style: _compact,
-          child: const Text(AppStrings.cardOpenTomorrow),
-        ),
-      );
-    }
-
     final label = _labelFor(card);
     if (label == null) return const SizedBox.shrink();
 
+    // 押したあとは、押した言葉をそのまま静かな文字で残す。
+    // （お客様ご指摘 2026/08/17）ボタンが消えるだけだと押せたのか分からず、
+    // 別の一文に差し替えると、何を押したのかとつながらないため。
     if (card.acknowledged) {
       return Text(
-        AppStrings.cardAcknowledged,
+        label,
         style: theme.textTheme.bodyMedium?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),
@@ -377,8 +339,6 @@ class _ActionButton extends StatelessWidget {
         // 「確認しました」ボタンは第2.0版で廃止。実質的にアプリを閉じるだけの
         // 操作のため不要と判断された。（要件定義書 4.5）
         return null;
-      case CardVariant.nightAllDone:
-      case CardVariant.nightRemaining:
       case CardVariant.future:
       case CardVariant.past:
         return null;

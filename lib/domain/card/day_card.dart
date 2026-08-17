@@ -12,14 +12,9 @@ enum CardVariant {
   /// 当日朝。「今日は◯つ覚えておけば大丈夫です」＋いってらっしゃいボタン。
   morning,
 
-  /// 当日日中。予定一覧＋確認しましたボタン。
+  /// 当日日中。予定一覧のみ。夜になっても当日のカードはこのままで、
+  /// 一日を締める専用の表示は持たない。（お客様ご指摘 2026/08/17）
   daytime,
-
-  /// 当日夜、その日の予定をすべて完了した状態。
-  nightAllDone,
-
-  /// 当日夜、やり残しがある状態。
-  nightRemaining,
 
   /// 明後日以降の未来のカード。
   future,
@@ -82,14 +77,6 @@ class DayCard {
   /// 破綻するため、当日以前のカードに限る。
   bool get isCheckable =>
       variant != CardVariant.future && variant != CardVariant.previousNight;
-
-  /// 予定の一覧を出すカードか。
-  ///
-  /// 当日夜のカードは一日を締めるための表示で、予定一覧は出さない。
-  /// （要件定義書 4.5 の表・画面イメージ「当日夜①」）
-  bool get showsEntries =>
-      variant != CardVariant.nightAllDone &&
-      variant != CardVariant.nightRemaining;
 }
 
 /// カードを組み立てる。
@@ -108,9 +95,6 @@ DayCard buildDayCard({
   final cardDate = dateOnly(date);
   final today = dateOnly(now);
   final currentTime = ClockTime(now.hour, now.minute);
-
-  final allCompleted =
-      entries.isNotEmpty && entries.every((entry) => entry.isCompleted);
 
   // 1枚のカードに表示する予定は最大 [AppConfig.maxSchedulesPerDay] 件。
   // （要件定義書 4.5 / 2.2）
@@ -132,7 +116,6 @@ DayCard buildDayCard({
       currentTime: currentTime,
       morningNotifyTime: morningNotifyTime,
       nightNotifyTime: nightNotifyTime,
-      allCompleted: allCompleted,
     ),
   );
 }
@@ -143,17 +126,17 @@ CardVariant _resolveVariant({
   required ClockTime currentTime,
   required ClockTime morningNotifyTime,
   required ClockTime nightNotifyTime,
-  required bool allCompleted,
 }) {
   final dayDiff = cardDate.difference(today).inDays;
 
   if (dayDiff < 0) return CardVariant.past;
 
   if (dayDiff == 0) {
-    // 夜の通知時刻を過ぎたら、その日を締める表示に切り替える。
-    if (currentTime.compareTo(nightNotifyTime) >= 0) {
-      return allCompleted ? CardVariant.nightAllDone : CardVariant.nightRemaining;
-    }
+    // 夜の通知時刻を過ぎても、当日のカードは日中のまま変えない。
+    // 夜に主役になるのは翌日のカード（previousNight）で、当日のカードを
+    // 別の表情に切り替えると、通知から開いた明日のカードと二重になる。
+    // （お客様ご指摘 2026/08/17）
+    //
     // 朝の通知時刻から正午までを「当日朝」とする。
     final midday = const ClockTime(AppConfig.middayBoundaryHour, 0);
     if (currentTime.compareTo(morningNotifyTime) >= 0 &&

@@ -58,6 +58,24 @@ String cardName(int dayOffset, DateTime date) {
   }
 }
 
+/// カード本文に差し込む日の呼び方。「今日」「明日」「昨日」、
+/// それ以外は「8月4日」。
+///
+/// [dateLabel] と違い、組み立て済みのカードが持つ [dayOffset] から決めるため
+/// 現在時刻を渡す必要がなく、カードの名前（[cardName]）と必ず同じ日を指す。
+String cardDayLabel(int dayOffset, DateTime date) {
+  switch (dayOffset) {
+    case 0:
+      return AppStrings.cardToday;
+    case 1:
+      return AppStrings.cardTomorrow;
+    case -1:
+      return AppStrings.cardYesterday;
+    default:
+      return '${date.month}月${date.day}日';
+  }
+}
+
 /// 「2026年7月21日（火）」形式。カードの日付行に使う。
 ///
 /// 画面イメージのカードは、名前（今日の安心カード）と日付を別の行に分けて

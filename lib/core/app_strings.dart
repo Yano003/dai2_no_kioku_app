@@ -202,9 +202,6 @@ class AppStrings {
   /// 一昨日以前・明後日以降のカードの名前。{date} に「7月20日」が入る。
   static const cardTitleOther = '{date}の安心カード';
 
-  /// 当日夜のカードの見出し。日付より前に置く。
-  static const cardTitleNight = '今日もお疲れさまでした。';
-
   // ---- カード本文 ----
 
   /// 前日夜。全角25文字以内。
@@ -212,15 +209,6 @@ class AppStrings {
 
   /// 当日朝。{count} に件数が入る。全角25文字以内。
   static const cardMorning = '今日は{count}つ覚えておけば大丈夫です。';
-
-  /// 当日夜（全完了）。全角30文字以内。
-  static const cardNightAllDone = '今日の大切なことは、すべてできました。';
-
-  /// 当日夜（やり残しあり）。全角30文字以内。
-  static const cardNightRemaining = '充実した一日でしたか？';
-
-  /// 当日夜のカードの締め。この下に「明日の安心カード」ボタンを置く。
-  static const cardNightNext = '明日の安心カードを確認しましょう。';
 
   /// 前日夜のカードの締め。
   static const cardPreviousNightClosing = 'また明日の朝にお会いしましょう。';
@@ -232,7 +220,11 @@ class AppStrings {
   static const cardPast = 'この日の記録です';
 
   /// 予定がない日。不安を与えない穏やかな表現にする。（要件定義書 4.9）
-  static const cardEmpty = '予定はありません';
+  ///
+  /// {day} に「今日」「明日」「昨日」または「8月4日」が入る。
+  /// 上下スクロールで日付を行き来する画面のため、本文だけを見ても
+  /// どの日のことか分かるようにする。（お客様ご指摘 2026/08/17）
+  static const cardEmpty = '{day}の予定はありません。';
 
   /// 前日夜のボタン。
   static const cardGoodNight = 'おやすみなさい';
@@ -244,15 +236,14 @@ class AppStrings {
   // 実質的にアプリを閉じるだけの操作のため不要と判断されたもの。
   // 完了チェックは各予定のチェックボックスで行う。
 
-  /// 「おやすみなさい」「いってらっしゃい」を押した後の表示。
-  static const cardAcknowledged = 'また見にきてください';
+  // 「おやすみなさい」「いってらっしゃい」を押した後は、押した言葉を
+  // そのまま静かな文字で残す。専用の文言は持たない。（お客様ご指摘 2026/08/17）
+  // 別の一文（「また見にきてください」）に差し替えると、押した操作と
+  // 表示がつながらず、押せたのかどうかが分からなくなるため。
 
   static const cardToday = '今日';
   static const cardTomorrow = '明日';
   static const cardYesterday = '昨日';
-
-  /// 当日夜のカードから明日のカードへ移動するボタン。
-  static const cardOpenTomorrow = '明日の安心カード';
 
   static const cardOpenCalendar = 'カレンダー';
 
@@ -346,16 +337,17 @@ class AppStrings {
   // ---------------------------------------------------------------------------
 
   /// 前日夜の通知。全角30文字以内。
-  static const notificationNightTitle = '明日の予定';
-  static const notificationNightBody = '明日はこれだけ覚えておけば大丈夫です';
+  ///
+  /// 予定がある日も無い日も同じ文面にする。（お客様ご指摘 2026/08/17）
+  /// 通知は挨拶とカードへの誘導だけを担い、中身はカードで伝える。
+  /// 予定の有無で文面が変わると、ロック画面の一文だけで判断させることになり、
+  /// カードを開かないまま済ませてしまうため。
+  static const notificationNightTitle = 'こんばんは';
+  static const notificationNightBody = '明日の安心カードを確かめましょう';
 
-  /// 当日朝の通知。{count} に件数が入る。全角30文字以内。
-  static const notificationMorningTitle = '今日の予定';
-  static const notificationMorningBody = '今日は{count}つ覚えておけば大丈夫です';
-
-  /// 予定が0件の日の通知。（レビュー追加提起 No.12）
-  static const notificationEmptyNightBody = '明日はゆっくりお過ごしください';
-  static const notificationEmptyMorningBody = '今日はゆっくりお過ごしください';
+  /// 当日朝の通知。全角30文字以内。前日夜と同じ考え方で件数を含めない。
+  static const notificationMorningTitle = 'おはようございます';
+  static const notificationMorningBody = '今日の安心カードを確かめましょう';
 
   /// 事前に予約した通知が尽きた場合のフォールバック。件数を含められない。
   static const notificationFallbackBody = '安心カードをご確認ください';

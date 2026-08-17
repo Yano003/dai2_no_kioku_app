@@ -43,15 +43,18 @@ enum NotificationKind {
 
 /// 通知の予約内容を組み立てる。
 ///
-/// ■ なぜ事前計算するのか
-/// ローカル通知の文面は予約した時点で固定される。「今日は◯つ覚えておけば
-/// 大丈夫です」の件数を通知に含めるには、日付ごとに件数を数えた文面を
-/// あらかじめ作って予約するしかない。サーバーを持たない構成では、
-/// 通知が発火する瞬間にアプリが件数を計算し直すことはできない。
+/// ■ なぜ日付ごとに予約するのか
+/// サーバーを持たない構成のため、通知が発火する瞬間にアプリが内容を
+/// 組み立てることはできない。文面は予定の有無によらず同じだが、タップして
+/// 開くカードの日付（[PlannedNotification.cardDate]）は日ごとに違うため、
+/// 1件ずつ予約する必要がある。
 ///
-/// このため、アプリ起動時と予定の登録・修正・削除のたびに
+/// アプリ起動時と予定の登録・修正・削除のたびに
 /// [AppConfig.notificationScheduleHorizonDays] 日先までを予約し直す。
 /// iOS の保留通知の上限は64件、1日2件なので 14日 × 2 = 28件で収まる。
+///
+/// [countsByDate] は文面には影響せず、予定が0件の日に通知を出すかどうかの
+/// 判定（[AppConfig.notifyOnEmptyDays]）にのみ使う。
 List<PlannedNotification> planNotifications({
   required DateTime now,
   required Map<DateTime, int> countsByDate,
@@ -67,42 +70,35 @@ List<PlannedNotification> planNotifications({
   for (var offset = 0; offset <= horizonDays; offset++) {
     final date = today.add(Duration(days: offset));
 
-    // 当日朝の通知。その日の予定を知らせる。
-    final morningCount = countFor(date);
+    // 当日朝の通知。その日のカードへ誘導する。
+    // 文面は予定の有無で変えない。（お客様ご指摘 2026/08/17）
     final morningAt = _at(date, morningNotifyTime);
     if (morningAt.isAfter(now) &&
-        (morningCount > 0 || AppConfig.notifyOnEmptyDays)) {
+        (countFor(date) > 0 || AppConfig.notifyOnEmptyDays)) {
       planned.add(
         PlannedNotification(
           id: _idFor(date, NotificationKind.morning),
           scheduledAt: morningAt,
           title: AppStrings.notificationMorningTitle,
-          body: morningCount > 0
-              ? AppStrings.withCount(
-                  AppStrings.notificationMorningBody,
-                  morningCount,
-                )
-              : AppStrings.notificationEmptyMorningBody,
+          body: AppStrings.notificationMorningBody,
           cardDate: date,
           kind: NotificationKind.morning,
         ),
       );
     }
 
-    // 前日夜の通知。翌日の予定を知らせ、翌日のカードを開く。
+    // 前日夜の通知。タップすると翌日のカードを直接開く。
+    // 当日のカードを挟まないこと。（お客様ご指摘 2026/08/17）
     final nextDay = date.add(const Duration(days: 1));
-    final nightCount = countFor(nextDay);
     final nightAt = _at(date, nightNotifyTime);
     if (nightAt.isAfter(now) &&
-        (nightCount > 0 || AppConfig.notifyOnEmptyDays)) {
+        (countFor(nextDay) > 0 || AppConfig.notifyOnEmptyDays)) {
       planned.add(
         PlannedNotification(
           id: _idFor(date, NotificationKind.night),
           scheduledAt: nightAt,
           title: AppStrings.notificationNightTitle,
-          body: nightCount > 0
-              ? AppStrings.notificationNightBody
-              : AppStrings.notificationEmptyNightBody,
+          body: AppStrings.notificationNightBody,
           cardDate: nextDay,
           kind: NotificationKind.night,
         ),
