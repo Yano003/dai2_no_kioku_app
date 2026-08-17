@@ -165,6 +165,71 @@ void main() {
     });
   });
 
+  group('予定をすべて完了したとき', () {
+    // お客様ご指摘 2026/08/17：最後の1つにチェックが付いた時点で、
+    // その場に労いの言葉が出る。翌日以降は1行だけ残る。
+    testWidgets('その日のうちは2行そろって出る', (tester) async {
+      await _pump(
+        tester,
+        _card(
+          variant: CardVariant.daytime,
+          dayOffset: 0,
+          entries: [
+            _entry('朝食後に薬', completed: true),
+            _entry('母さんに電話する', completed: true),
+          ],
+        ),
+      );
+
+      expect(find.text(AppStrings.cardAllDone), findsOneWidget);
+      expect(find.text(AppStrings.cardAllDoneRelax), findsOneWidget);
+      // 専用のカードや画面には移らず、予定一覧はそのまま残る。
+      expect(find.text('朝食後に薬'), findsOneWidget);
+    });
+
+    testWidgets('翌日以降は1行だけ残る', (tester) async {
+      await _pump(
+        tester,
+        _card(
+          variant: CardVariant.past,
+          dayOffset: -1,
+          entries: [_entry('朝食後に薬', completed: true)],
+        ),
+      );
+
+      expect(find.text(AppStrings.cardAllDone), findsOneWidget);
+      expect(find.text(AppStrings.cardAllDoneRelax), findsNothing);
+      expect(find.text(AppStrings.cardPast), findsOneWidget);
+    });
+
+    testWidgets('やり残しが1つでもあれば出さない', (tester) async {
+      await _pump(
+        tester,
+        _card(
+          variant: CardVariant.daytime,
+          dayOffset: 0,
+          entries: [
+            _entry('朝食後に薬', completed: true),
+            _entry('母さんに電話する'),
+          ],
+        ),
+      );
+
+      expect(find.text(AppStrings.cardAllDone), findsNothing);
+      expect(find.text(AppStrings.cardAllDoneRelax), findsNothing);
+    });
+
+    testWidgets('予定が0件の日には出さない', (tester) async {
+      // 何も無い日を「すべてクリアできました」と祝うのは不自然。
+      await _pump(
+        tester,
+        _card(variant: CardVariant.daytime, dayOffset: 0),
+      );
+
+      expect(find.text(AppStrings.cardAllDone), findsNothing);
+    });
+  });
+
   group('当日のカード', () {
     testWidgets('夜になっても一日を締める専用の表示は出さない', (tester) async {
       // 当日夜のカードは廃止した。夜の通知からは明日のカードを直接開くため、
@@ -183,6 +248,8 @@ void main() {
       expect(find.text('歯医者'), findsOneWidget);
       expect(find.byType(Checkbox), findsOneWidget);
       expect(find.byType(FilledButton), findsNothing);
+      // 一日を締める見出しや、明日のカードへ促すボタンは持たない。
+      expect(find.text(AppStrings.cardOpenCalendar), findsNothing);
     });
   });
 

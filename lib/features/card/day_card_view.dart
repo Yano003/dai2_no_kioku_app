@@ -10,7 +10,8 @@ import '../../domain/card/day_card.dart';
 /// 安心カード1枚分の表示。（要件定義書 4.5 / S-05）
 ///
 /// 画面イメージのカードは、上から
-///   カードの名前 → 日付 → 本文 → 予定一覧 → 締めの一文 → ボタン
+///   カードの名前 → 日付 → 本文 → 予定一覧 → 全部できたときの一言
+///   → 締めの一文 → ボタン
 /// の順に並ぶ。表示パターンごとの出し分けは [DayCard.variant] から決まる。
 ///
 /// 文言はすべて仮であり、[AppStrings] の差し替えで確定する。
@@ -76,6 +77,7 @@ class DayCardView extends StatelessWidget {
                   onEdit: () => onEditEntry(entry),
                 ),
               ),
+              _AllDoneMessage(card: card),
               _ClosingLine(card: card),
               const SizedBox(height: 12),
               _ActionButton(
@@ -129,6 +131,43 @@ class _Message extends StatelessWidget {
         AppStrings.cardEmpty,
         {'day': cardDayLabel(card.dayOffset, card.date)},
       );
+}
+
+/// 予定をすべて完了したときに、一覧の下へ現れる労いの言葉。
+/// （お客様ご指摘 2026/08/17）
+///
+/// 最後の1つにチェックが付いた時点でその場に現れる。専用のカードや画面には
+/// せず、いま見ているカードの中で完結させる。
+class _AllDoneMessage extends StatelessWidget {
+  const _AllDoneMessage({required this.card});
+
+  final DayCard card;
+
+  @override
+  Widget build(BuildContext context) {
+    // 予定が0件の日を「すべてできました」と祝うのは不自然なため、
+    // [DayCard.allCompleted] は1件以上ある日にだけ真になる。
+    if (!card.allCompleted) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final style = theme.textTheme.bodyLarge?.copyWith(
+      fontWeight: FontWeight.w600,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(AppStrings.cardAllDone, style: style),
+          // 2行目はその日のうちだけ。翌日以降は1行だけ残す。
+          if (card.dayOffset >= 0)
+            Text(AppStrings.cardAllDoneRelax, style: style),
+        ],
+      ),
+    );
+  }
 }
 
 /// 予定一覧の下に添える一文。

@@ -283,6 +283,52 @@ void main() {
     );
   });
 
+  testWidgets('当日日中のカード（すべて完了）', (tester) async {
+    // お客様ご指摘 2026/08/17：全部にチェックが付くと、その場で2行出る。
+    await _shoot(
+      tester,
+      DayCardView(
+        card: _card(
+          variant: CardVariant.daytime,
+          dayOffset: 0,
+          entries: [
+            _entry('朝食後に薬', completed: true),
+            _entry('母さんに電話する', completed: true),
+            _entry('帰りに牛乳を買う', completed: true),
+            _entry('税金の支払い', completed: true),
+          ],
+        ),
+        onToggleEntry: (_) {},
+        onEditEntry: (_) {},
+        onAcknowledge: () {},
+      ),
+      'card_daytime_all_done',
+    );
+  });
+
+  testWidgets('昨日のカード（すべて完了）', (tester) async {
+    // 翌日以降はメッセージが1行だけ残る。
+    await _shoot(
+      tester,
+      DayCardView(
+        card: _card(
+          variant: CardVariant.past,
+          dayOffset: -1,
+          entries: [
+            _entry('朝食後に薬', completed: true),
+            _entry('母さんに電話する', completed: true),
+            _entry('帰りに牛乳を買う', completed: true),
+            _entry('税金の支払い', completed: true),
+          ],
+        ),
+        onToggleEntry: (_) {},
+        onEditEntry: (_) {},
+        onAcknowledge: () {},
+      ),
+      'card_past_all_done',
+    );
+  });
+
   testWidgets('前日夜のカード（予定なし）', (tester) async {
     // 「明日の予定はありません。」だけを出し、空の一覧は置かない。
     // （お客様ご指摘 2026/08/17）
