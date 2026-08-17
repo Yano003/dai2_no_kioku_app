@@ -329,6 +329,29 @@ void main() {
     );
   });
 
+  testWidgets('昨日のカード（やり残しあり）', (tester) async {
+    // 翌日以降もリストはそのまま残り、労いの言葉は出さない。
+    await _shoot(
+      tester,
+      DayCardView(
+        card: _card(
+          variant: CardVariant.past,
+          dayOffset: -1,
+          entries: [
+            _entry('朝食後に薬', completed: true),
+            _entry('母さんに電話する', completed: true),
+            _entry('帰りに牛乳を買う', completed: true),
+            _entry('税金の支払い'),
+          ],
+        ),
+        onToggleEntry: (_) {},
+        onEditEntry: (_) {},
+        onAcknowledge: () {},
+      ),
+      'card_past_remaining',
+    );
+  });
+
   testWidgets('前日夜のカード（予定なし）', (tester) async {
     // 「明日の予定はありません。」だけを出し、空の一覧は置かない。
     // （お客様ご指摘 2026/08/17）

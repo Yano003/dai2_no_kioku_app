@@ -34,6 +34,15 @@ void main() {
       expect(schedule.occursOn(DateTime(2026, 8, 11)), isFalse);
     });
 
+    test('完了しなくても翌日には繰り越さない', () {
+      // 完了状態は occurrences 側に持つため、発生日の判定には影響しない。
+      // やり残した予定はその日のカードに残り、翌日のカードには現れない。
+      // （[AppConfig.carryOverPolicy] = none / お客様ご指摘 2026/08/17）
+      expect(schedule.occursOn(DateTime(2026, 8, 10)), isTrue);
+      expect(schedule.occursOn(DateTime(2026, 8, 11)), isFalse);
+      expect(schedule.occursOn(DateTime(2026, 8, 12)), isFalse);
+    });
+
     test('時刻成分があっても同じ日なら現れる', () {
       expect(schedule.occursOn(DateTime(2026, 8, 10, 23, 59)), isTrue);
     });

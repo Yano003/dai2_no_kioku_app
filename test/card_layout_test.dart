@@ -230,6 +230,59 @@ void main() {
     });
   });
 
+  group('やり残したとき', () {
+    // お客様ご指摘 2026/08/17：チェックされていないリストがある場合は
+    // メッセージなし。翌日以降もリストはそのまま残る。
+    testWidgets('翌日以降もチェックの有無ごと一覧が残る', (tester) async {
+      await _pump(
+        tester,
+        _card(
+          variant: CardVariant.past,
+          dayOffset: -1,
+          entries: [
+            _entry('朝食後に薬', completed: true),
+            _entry('母さんに電話する', completed: true),
+            _entry('帰りに牛乳を買う', completed: true),
+            _entry('税金の支払い'),
+          ],
+        ),
+      );
+
+      // やり残した分だけ消える、といったことは起こさない。
+      expect(find.byType(Checkbox), findsNWidgets(4));
+      expect(find.text('税金の支払い'), findsOneWidget);
+      expect(
+        tester.widgetList<Checkbox>(find.byType(Checkbox)).map((c) => c.value),
+        [true, true, true, false],
+      );
+
+      expect(find.text(AppStrings.cardPast), findsOneWidget);
+      // 1つでもやり残していれば、労いの言葉は翌日以降も出さない。
+      expect(find.text(AppStrings.cardAllDone), findsNothing);
+      expect(find.text(AppStrings.cardAllDoneRelax), findsNothing);
+    });
+
+    testWidgets('やり残した予定は完了扱いの見た目にしない', (tester) async {
+      await _pump(
+        tester,
+        _card(
+          variant: CardVariant.past,
+          dayOffset: -1,
+          entries: [
+            _entry('朝食後に薬', completed: true),
+            _entry('税金の支払い'),
+          ],
+        ),
+      );
+
+      TextStyle styleOf(String title) =>
+          tester.widget<Text>(find.text(title)).style!;
+
+      expect(styleOf('朝食後に薬').decoration, TextDecoration.lineThrough);
+      expect(styleOf('税金の支払い').decoration, isNot(TextDecoration.lineThrough));
+    });
+  });
+
   group('当日のカード', () {
     testWidgets('夜になっても一日を締める専用の表示は出さない', (tester) async {
       // 当日夜のカードは廃止した。夜の通知からは明日のカードを直接開くため、
