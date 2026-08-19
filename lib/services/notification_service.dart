@@ -38,12 +38,41 @@ class NotificationService {
   static const _channelName = 'お知らせ';
   static const _channelDescription = '前の日の夜と当日の朝に、予定をお知らせします。';
 
+  /// 通知の受け渡しを端末上で追うための記録。
+  ///
+  /// タップがどの経路で届くか（起動時か、動作中か）は端末と OS の状態に
+  /// 左右され、テスト環境では再現できない。原因を切り分けられるよう、
+  /// 受け渡しの要所だけを残す。利用者には見えない。
+  ///
+  ///   adb logcat -s flutter
+  ///
+  /// で「[通知]」を含む行を追うこと。
+  static void _log(String message) => debugPrint('[通知] $message');
+
   bool _initialized = false;
 
-  /// 通知タップで開くカードの日付。アプリ起動時に受け取る。
+  /// 通知タップで開くカードの日付。
+  ///
+  /// アプリが終了している状態から通知で起動された場合、UI の準備が整う前に
+  /// この値だけが先に決まる。受け渡しを取りこぼすと通常の起動と区別が付かず、
+  /// 「今日の安心カード」から始まってしまうため、いったんここへ保持する。
+  /// 取り出しは [consumePendingCardDate] を使うこと。
   DateTime? pendingCardDate;
 
+  /// 保持している日付を取り出し、あわせて消す。
+  ///
+  /// 消さずに残すと、同じ日付で二度カードを開いたり、次に画面を組み直した
+  /// ときに古い日付へ戻ったりする。
+  DateTime? consumePendingCardDate() {
+    final date = pendingCardDate;
+    pendingCardDate = null;
+    return date;
+  }
+
   /// 通知タップ時に呼ばれるコールバック。UI 側から差し込む。
+  ///
+  /// アプリが動いている間のタップはこちらで届く。差し込まれる前にタップが
+  /// 届いた場合は [pendingCardDate] に残るため、どちらでも取りこぼさない。
   void Function(DateTime cardDate)? onOpenCard;
 
   // ---------------------------------------------------------------------------
@@ -73,10 +102,16 @@ class NotificationService {
     );
 
     // アプリが終了している状態で通知をタップして起動された場合。
+    // 動作中のタップと違い、こちらは初期化時に取りに行くしかない。
     final launchDetails = await _plugin.getNotificationAppLaunchDetails();
-    if (launchDetails?.didNotificationLaunchApp ?? false) {
-      final payload = launchDetails?.notificationResponse?.payload;
-      pendingCardDate = _cardDateFromPayload(payload);
+    final launchedByNotification =
+        launchDetails?.didNotificationLaunchApp ?? false;
+    final launchPayload = launchDetails?.notificationResponse?.payload;
+    _log('起動: 通知から=$launchedByNotification payload=$launchPayload');
+
+    if (launchedByNotification) {
+      pendingCardDate = _cardDateFromPayload(launchPayload);
+      _log('起動時に開くカード=$pendingCardDate');
     }
 
     _initialized = true;
@@ -96,10 +131,25 @@ class NotificationService {
   }
 
   void _handleResponse(NotificationResponse response) {
+    _log('タップ: payload=${response.payload}');
+
     final date = _cardDateFromPayload(response.payload);
-    if (date == null) return;
+    if (date == null) {
+      _log('payload からカードの日付を取り出せませんでした');
+      return;
+    }
+
+    // UI 側がまだコールバックを差し込んでいない場合に備え、必ず保持する。
+    // 保持しておけば [consumePendingCardDate] で拾える。
     pendingCardDate = date;
-    onOpenCard?.call(date);
+
+    final open = onOpenCard;
+    if (open == null) {
+      _log('UI がまだ受け取れないため保持します: $date');
+      return;
+    }
+    _log('カードを開きます: $date');
+    open(date);
   }
 
   static DateTime? _cardDateFromPayload(String? payload) {
@@ -193,6 +243,12 @@ class NotificationService {
     for (final notification in planned) {
       await _schedule(notification);
     }
+
+    final firstNight = planned
+        .where((n) => n.kind == NotificationKind.night)
+        .firstOrNull;
+    _log('予約し直しました: ${planned.length}件 '
+        '次の前日夜=${firstNight?.scheduledAt} payload=${firstNight?.payload}');
   }
 
   Future<void> _schedule(PlannedNotification notification) async {
