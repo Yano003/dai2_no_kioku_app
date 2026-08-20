@@ -65,9 +65,17 @@ class _Dai2NoKiokuAppState extends ConsumerState<Dai2NoKiokuApp>
 
     if (!mounted) return;
     setState(() {
-      _launchCardDate = notifications.pendingCardDate;
+      _launchCardDate = notifications.consumePendingCardDate();
       _onboardingCompleted = settings.onboardingCompleted;
       _ready = true;
+    });
+
+    // 端末によっては、通知タップの情報が初期化の直後ではなく最初のフレームの
+    // 後に届く。ここで取りこぼすと通常の起動と見分けが付かず、明日のカードでは
+    // なく今日のカードから始まってしまうため、もう一度だけ確かめる。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pending = notifications.consumePendingCardDate();
+      if (pending != null) _openCard(pending);
     });
   }
 
@@ -80,7 +88,17 @@ class _Dai2NoKiokuAppState extends ConsumerState<Dai2NoKiokuApp>
     }
   }
 
+  /// 通知から対象の日のカードを開く。（要件定義書 6.3）
+  ///
+  /// 起動直後は Navigator がまだ構築されておらず、push しても黙って捨てられる。
+  /// そこで日付を状態として持ち、表示の起点そのものをカードへ切り替える。
+  /// Navigator があるときは加えて push し、その場で移動させる。
+  /// どちらの経路でも必ず対象の日のカードから始まる。
   void _openCard(DateTime date) {
+    if (!mounted) return;
+
+    setState(() => _launchCardDate = date);
+
     _navigatorKey.currentState?.pushAndRemoveUntil(
       MaterialPageRoute<void>(builder: (_) => CardScreen(initialDate: date)),
       (route) => false,
@@ -102,7 +120,13 @@ class _Dai2NoKiokuAppState extends ConsumerState<Dai2NoKiokuApp>
               // 通知から起動された場合はカードを開く。（要件定義書 6.3）
               // 通常の起動は音声入力画面から始める。（要件定義書 4.2）
               : _launchCardDate != null
-                  ? CardScreen(initialDate: _launchCardDate)
+                  // 日付ごとに作り直す。[CardScreen] は起点の日付を initState で
+                  // 1度だけ読むため、キーが同じだと State が使い回され、
+                  // 前に開いた日付のまま表示されてしまう。
+                  ? CardScreen(
+                      key: ValueKey(_launchCardDate),
+                      initialDate: _launchCardDate,
+                    )
                   : const InputScreen(),
     );
   }

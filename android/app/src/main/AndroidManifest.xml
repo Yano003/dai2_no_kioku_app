@@ -26,10 +26,33 @@
         android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- launchMode は Flutter の既定（singleTop）から singleTask へ変更している。
+             通知をタップしたときに、その通知が指す日のカードを開くために必要。
+
+             flutter_local_notifications がタップ用に組み立てる Intent は
+             PackageManager#getLaunchIntentForPackage をもとにしており、
+             CATEGORY_LAUNCHER と FLAG_ACTIVITY_NEW_TASK を保持したままになる。
+             singleTop の場合、アプリのタスクが履歴（最近使ったアプリ）に残った
+             ままプロセスだけが終了している状態でタップすると、Android は新しい
+             Intent を渡さずに履歴からタスクを復元する。すると
+               ・onNewIntent が呼ばれない
+               ・getIntent() が起動時の Intent（SELECT_NOTIFICATION ではない）になる
+               ・FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY が立つ
+             の3つが重なり、プラグインは「通知から起動された」と判定できず、
+             payload（開くカードの日付）が捨てられる。結果、通常の起動と同じ
+             扱いになり、明日のカードではなく今日のカードから始まってしまう。
+             （お客様ご指摘 2026/08/17）
+
+             singleTask にすると、既に存在するタスクへ Intent が届けられ、
+             onNewIntent が確実に呼ばれる。
+
+             本アプリの画面はすべて Flutter 側の Navigator で切り替えており、
+             Android の Activity は MainActivity だけである。端末の設定画面
+             （app_settings）は別アプリのタスクとして開くため影響しない。 -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
