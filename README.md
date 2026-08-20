@@ -267,6 +267,20 @@ Android は端末の省電力機能により、設定時刻から数分〜十数
 `AndroidScheduleMode.exactAllowWhileIdle` と `USE_EXACT_ALARM` で最大限の精度を狙うが、
 100%の保証はできない。
 
+### 通知タップで開くカードの日付
+
+前日夜の通知をタップしたときは、当日のカードを挟まずに**翌日のカード**を開く。
+開く日付は通知に payload（`card:2026-08-20`）として持たせている。
+
+この受け渡しは Android の Activity の起動方式に影響される。
+`AndroidManifest.xml` の `MainActivity` は **`launchMode="singleTask"`** にしてある。
+Flutter の既定（`singleTop`）のままだと、タスクが履歴に残ったままプロセスだけが
+終了している状態でタップした場合に payload が捨てられ、通常の起動と区別が付かなく
+なる（＝今日のカードから始まってしまう）。理由の詳細は AndroidManifest.xml の
+コメントに記載している。**この行は変更しないこと。**
+
+受け渡しの様子は `adb logcat -s flutter` で `[通知]` を含む行として確認できる。
+
 ### 通知の事前予約
 
 ローカル通知は予約した時点で内容が固定される。文面自体は予定の有無によらず
