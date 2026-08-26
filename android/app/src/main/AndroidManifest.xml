@@ -25,7 +25,12 @@
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false">
+        <!-- 予定データは「端末内にのみ保存」がプライバシーポリシー上の前提。
+             allowBackup を無効化しないと、Android の自動バックアップ経由で
+             予定データが利用者の Google アカウントへコピーされ得るため、
+             この前提が崩れる。（弁護士レビュー 2026/08/26 対応） -->
         <!-- launchMode は Flutter の既定（singleTop）から singleTask へ変更している。
              通知をタップしたときに、その通知が指す日のカードを開くために必要。
 

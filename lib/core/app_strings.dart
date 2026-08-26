@@ -39,6 +39,24 @@ class AppStrings {
   // 各許可の前に、なぜ必要かを1文で平易に説明する。（要件定義書 4.1）
   // ---------------------------------------------------------------------------
 
+  /// 利用規約・プライバシーポリシーへの同意。案内の最初の1画面目。
+  ///
+  /// 「ダウンロード＝みなし同意」ではなく明示的な同意取得に切り替えた
+  /// （弁護士レビュー 2026/08/26 対応・クライアントご指示 2026/08/26）。
+  /// このステップだけは「あとで」で飛ばせない。
+  static const onboardingLegalTitle = 'はじめに';
+
+  static const onboardingLegalBody =
+      '本アプリをお使いいただく前に、利用規約とプライバシーポリシーをご確認ください。';
+
+  static const onboardingLegalViewTerms = '利用規約を読む';
+  static const onboardingLegalViewPrivacy = 'プライバシーポリシーを読む';
+
+  static const onboardingLegalCheckbox = '利用規約とプライバシーポリシーに同意します';
+
+  /// 同意済みでなければ押せない。（第1条の「同意画面」を成立させるボタン）
+  static const onboardingLegalAgree = '同意してはじめる';
+
   /// 全角20文字以内。
   static const onboardingWelcomeTitle = 'ようこそ';
 

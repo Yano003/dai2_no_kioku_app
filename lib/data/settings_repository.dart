@@ -12,6 +12,7 @@ class AppSettings {
     required this.nightNotifyTime,
     required this.onboardingCompleted,
     required this.notifyTimeConfirmed,
+    this.termsAgreedAt,
   });
 
   /// 起床のおおよその時刻。初回設定で一度だけ伺う。（要件定義書 6.2）
@@ -35,6 +36,13 @@ class AppSettings {
   /// （要件定義書 4.4）を満たすため、初回の登録後にだけ S-04 を挟む判断に使う。
   final bool notifyTimeConfirmed;
 
+  /// 利用規約・プライバシーポリシーに同意した日時。
+  ///
+  /// 初回起動案内の最初の画面（同意画面）で「同意してはじめる」を押した
+  /// 時刻を記録する。「ダウンロード＝みなし同意」より立証力のある同意記録を
+  /// 残すため（弁護士レビュー 2026/08/26 対応）。未同意なら null。
+  final DateTime? termsAgreedAt;
+
   /// 起床・就寝時刻から通知時刻の初期値を逆算する。（要件定義書 6.2）
   static ClockTime morningNotifyFor(ClockTime wakeTime) =>
       wakeTime.subtract(AppConfig.notificationOffsetBeforeWake);
@@ -49,6 +57,7 @@ class AppSettings {
     ClockTime? nightNotifyTime,
     bool? onboardingCompleted,
     bool? notifyTimeConfirmed,
+    DateTime? termsAgreedAt,
   }) {
     return AppSettings(
       wakeTime: wakeTime ?? this.wakeTime,
@@ -57,6 +66,7 @@ class AppSettings {
       nightNotifyTime: nightNotifyTime ?? this.nightNotifyTime,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       notifyTimeConfirmed: notifyTimeConfirmed ?? this.notifyTimeConfirmed,
+      termsAgreedAt: termsAgreedAt ?? this.termsAgreedAt,
     );
   }
 
@@ -82,6 +92,7 @@ class SettingsRepository {
   static const _keyNightNotify = 'night_notify_minutes';
   static const _keyOnboarding = 'onboarding_completed';
   static const _keyNotifyConfirmed = 'notify_time_confirmed';
+  static const _keyTermsAgreedAt = 'terms_agreed_at_millis';
 
   Future<AppSettings> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -93,6 +104,8 @@ class SettingsRepository {
       return ClockTime(minutes ~/ 60, minutes % 60);
     }
 
+    final termsAgreedAtMillis = prefs.getInt(_keyTermsAgreedAt);
+
     return AppSettings(
       wakeTime: read(_keyWake, defaults.wakeTime),
       sleepTime: read(_keySleep, defaults.sleepTime),
@@ -102,6 +115,9 @@ class SettingsRepository {
           prefs.getBool(_keyOnboarding) ?? defaults.onboardingCompleted,
       notifyTimeConfirmed:
           prefs.getBool(_keyNotifyConfirmed) ?? defaults.notifyTimeConfirmed,
+      termsAgreedAt: termsAgreedAtMillis == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(termsAgreedAtMillis),
     );
   }
 
@@ -116,5 +132,11 @@ class SettingsRepository {
     await prefs.setInt(_keyNightNotify, settings.nightNotifyTime.totalMinutes);
     await prefs.setBool(_keyOnboarding, settings.onboardingCompleted);
     await prefs.setBool(_keyNotifyConfirmed, settings.notifyTimeConfirmed);
+    if (settings.termsAgreedAt != null) {
+      await prefs.setInt(
+        _keyTermsAgreedAt,
+        settings.termsAgreedAt!.millisecondsSinceEpoch,
+      );
+    }
   }
 }

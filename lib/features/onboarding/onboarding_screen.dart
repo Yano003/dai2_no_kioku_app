@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/app_config.dart';
 import '../../core/app_strings.dart';
 import '../../core/clock_time.dart';
+import '../../core/legal_documents.dart';
 import '../../core/theme.dart';
 import '../../providers.dart';
 import '../input/input_screen.dart';
+import 'legal_document_screen.dart';
 
 /// S-01 初回起動案内。
 ///
@@ -34,10 +36,16 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  static const _stepCount = 5;
+  static const _stepCount = 6;
 
   int _step = 0;
   bool _busy = false;
+
+  /// 利用規約・プライバシーポリシーへのチェック状態。
+  bool _agreed = false;
+
+  /// 「同意してはじめる」を押した時刻。同意の記録として保存する。
+  DateTime? _agreedAt;
 
   ClockTime _sleepTime = AppConfig.defaultSleepTime;
   ClockTime _wakeTime = AppConfig.defaultWakeTime;
@@ -48,6 +56,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } else {
       _finish();
     }
+  }
+
+  /// 規約・PPへの同意を記録し、次へ進む。
+  ///
+  /// このステップだけは「あとで」で飛ばせない。チェックが付くまで
+  /// 呼ばれない（[onPrimary] を null にして押せなくしている）。
+  void _agreeAndNext() {
+    setState(() => _agreedAt = DateTime.now());
+    _next();
+  }
+
+  Future<void> _openLegalDocument({
+    required String title,
+    required String assetPath,
+  }) {
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LegalDocumentScreen(title: title, assetPath: assetPath),
+      ),
+    );
   }
 
   /// 声（マイク・文字起こし）の利用許可を求める。
@@ -92,9 +120,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() => _busy = true);
 
     // 起床・就寝から通知時刻を逆算し、案内の完了とあわせて一度で保存する。
+    // _agreedAt は1画面目（同意画面）を通らない限り null にならない。
     await ref.read(settingsProvider.notifier).completeOnboarding(
           wakeTime: _wakeTime,
           sleepTime: _sleepTime,
+          termsAgreedAt: _agreedAt!,
         );
 
     if (!mounted) return;
@@ -125,6 +155,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _buildStep() {
     switch (_step) {
       case 0:
+        // 規約・PPへの明示同意。「あとで」で飛ばせる他のステップと異なり、
+        // チェックが付くまで先へ進めない。（弁護士レビュー 2026/08/26 対応）
+        return _StepLayout(
+          title: AppStrings.onboardingLegalTitle,
+          body: AppStrings.onboardingLegalBody,
+          icon: Icons.description_outlined,
+          content: _LegalAgreementContent(
+            agreed: _agreed,
+            onAgreedChanged: (value) => setState(() => _agreed = value ?? false),
+            onViewTerms: () => _openLegalDocument(
+              title: AppStrings.onboardingLegalViewTerms,
+              assetPath: LegalDocuments.termsOfServiceAsset,
+            ),
+            onViewPrivacy: () => _openLegalDocument(
+              title: AppStrings.onboardingLegalViewPrivacy,
+              assetPath: LegalDocuments.privacyPolicyAsset,
+            ),
+          ),
+          primaryLabel: AppStrings.onboardingLegalAgree,
+          onPrimary: (_busy || !_agreed) ? null : _agreeAndNext,
+        );
+
+      case 1:
         return _StepLayout(
           title: AppStrings.onboardingWelcomeTitle,
           body: AppStrings.onboardingWelcomeBody,
@@ -133,7 +186,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           onPrimary: _busy ? null : _next,
         );
 
-      case 1:
+      case 2:
         return _StepLayout(
           title: AppStrings.onboardingMicTitle,
           // マイクと文字起こしの両方をここで説明する。OS のダイアログは
@@ -148,7 +201,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           onSecondary: _busy ? null : _next,
         );
 
-      case 2:
+      case 3:
         return _StepLayout(
           title: AppStrings.onboardingNotificationTitle,
           body: AppStrings.onboardingNotificationBody,
@@ -160,7 +213,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           onSecondary: _busy ? null : _next,
         );
 
-      case 3:
+      case 4:
         return _StepLayout(
           title: AppStrings.onboardingSleepQuestion,
           body: AppStrings.onboardingSleepBody,
@@ -175,7 +228,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           onPrimary: _busy ? null : _next,
         );
 
-      case 4:
+      case 5:
         return _StepLayout(
           title: AppStrings.onboardingWakeQuestion,
           body: AppStrings.onboardingWakeBody,
@@ -292,6 +345,51 @@ class _StepLayout extends StatelessWidget {
         else
           const SizedBox(height: AppTheme.minTapSize),
         const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
+/// 同意画面の本文下に置く、規約・PPへのリンクとチェックボックス。
+class _LegalAgreementContent extends StatelessWidget {
+  const _LegalAgreementContent({
+    required this.agreed,
+    required this.onAgreedChanged,
+    required this.onViewTerms,
+    required this.onViewPrivacy,
+  });
+
+  final bool agreed;
+  final ValueChanged<bool?> onAgreedChanged;
+  final VoidCallback onViewTerms;
+  final VoidCallback onViewPrivacy;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: onViewTerms,
+            child: Text(AppStrings.onboardingLegalViewTerms),
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: onViewPrivacy,
+            child: Text(AppStrings.onboardingLegalViewPrivacy),
+          ),
+        ),
+        CheckboxListTile(
+          value: agreed,
+          onChanged: onAgreedChanged,
+          controlAffinity: ListTileControlAffinity.leading,
+          contentPadding: EdgeInsets.zero,
+          title: Text(AppStrings.onboardingLegalCheckbox),
+        ),
       ],
     );
   }

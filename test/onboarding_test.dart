@@ -66,8 +66,35 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// 規約・PPへの同意画面（1画面目）を通過する。
+  ///
+  /// このステップだけは「あとで」で飛ばせないため、チェックを付けてから
+  /// 「同意してはじめる」を押す必要がある。
+  Future<void> agreeToLegalTerms(WidgetTester tester) async {
+    expect(find.text(AppStrings.onboardingLegalTitle), findsOneWidget);
+    await tester.tap(find.text(AppStrings.onboardingLegalCheckbox));
+    await tester.pumpAndSettle();
+    await tapLabel(tester, AppStrings.onboardingLegalAgree);
+  }
+
+  testWidgets('規約・PPに同意しないと先へ進めない', (tester) async {
+    await pumpOnboarding(tester);
+
+    // チェックを付ける前は「同意してはじめる」が押せない。
+    final agreeButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, AppStrings.onboardingLegalAgree),
+    );
+    expect(agreeButton.onPressed, isNull);
+
+    await agreeToLegalTerms(tester);
+
+    // 次の画面（ようこそ）に進んでいること。
+    expect(find.text(AppStrings.onboardingWelcomeTitle), findsOneWidget);
+  });
+
   testWidgets('許可を1つずつ順に取得し、最後まで進むと完了が記録される', (tester) async {
     await pumpOnboarding(tester);
+    await agreeToLegalTerms(tester);
 
     // 1画面目：ようこそ
     expect(find.text(AppStrings.onboardingWelcomeTitle), findsOneWidget);
@@ -97,11 +124,14 @@ void main() {
     // 既定の就寝22:00／起床07:00 から30分前が逆算されていること。
     expect(saved.nightNotifyTime, const ClockTime(21, 30));
     expect(saved.morningNotifyTime, const ClockTime(6, 30));
+    // 同意画面を通過した時刻が記録されていること。
+    expect(saved.termsAgreedAt, isNotNull);
   });
 
   testWidgets('「あとで」で許可を拒んでも先へ進める', (tester) async {
     // 許可が拒否された場合も操作は続行できること。（要件定義書 4.1）
     await pumpOnboarding(tester);
+    await agreeToLegalTerms(tester);
 
     await tapLabel(tester, AppStrings.onboardingNext);
     await tapLabel(tester, AppStrings.onboardingSkip);
@@ -122,6 +152,7 @@ void main() {
 
   testWidgets('起床・就寝の時刻を選び直すと通知時刻に反映される', (tester) async {
     await pumpOnboarding(tester);
+    await agreeToLegalTerms(tester);
 
     await tapLabel(tester, AppStrings.onboardingNext);
     await tapLabel(tester, AppStrings.onboardingSkip);

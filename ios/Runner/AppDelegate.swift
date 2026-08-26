@@ -33,5 +33,39 @@ import UserNotifications
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    // 予定データ（sqflite の DB ファイル）を iCloud バックアップの対象から
+    // 除外する。プライバシーポリシーの「端末内にのみ保存」という前提を
+    // 保つために必要（弁護士レビュー 2026/08/26 対応）。sqflite 自体には
+    // この機能が無いため、Dart 側（app_database.dart）から DB ファイルの
+    // 絶対パスを渡してもらい、ここでファイル属性を立てる。
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "BackupExclusionChannel") {
+      let channel = FlutterMethodChannel(
+        name: "jp.co.hitokoto.kiokuwo/backup_exclusion",
+        binaryMessenger: registrar.messenger()
+      )
+      channel.setMethodCallHandler { call, result in
+        guard call.method == "exclude",
+              let args = call.arguments as? [String: Any],
+              let path = args["path"] as? String
+        else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        var url = URL(fileURLWithPath: path)
+        var resourceValues = URLResourceValues()
+        resourceValues.isExcludedFromBackup = true
+        do {
+          try url.setResourceValues(resourceValues)
+          result(true)
+        } catch {
+          result(FlutterError(
+            code: "EXCLUDE_FROM_BACKUP_FAILED",
+            message: error.localizedDescription,
+            details: nil
+          ))
+        }
+      }
+    }
   }
 }

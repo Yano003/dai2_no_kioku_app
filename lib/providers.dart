@@ -74,9 +74,13 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
   ///
   /// 伺った起床・就寝時刻から通知時刻を逆算し、案内の完了フラグと合わせて
   /// 一度だけ保存する。保存を分けると通知の予約が二重に走るため、まとめる。
+  ///
+  /// [termsAgreedAt] は案内の1画面目（同意画面）で「同意してはじめる」を
+  /// 押した時刻。利用規約 第1条の同意記録として保存する。
   Future<void> completeOnboarding({
     required ClockTime wakeTime,
     required ClockTime sleepTime,
+    required DateTime termsAgreedAt,
   }) async {
     final current = state.value ?? AppSettings.defaults;
     await save(
@@ -86,6 +90,7 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
         morningNotifyTime: AppSettings.morningNotifyFor(wakeTime),
         nightNotifyTime: AppSettings.nightNotifyFor(sleepTime),
         onboardingCompleted: true,
+        termsAgreedAt: termsAgreedAt,
       ),
     );
   }

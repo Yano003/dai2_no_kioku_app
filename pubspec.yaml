@@ -70,6 +70,8 @@ flutter:
 
   assets:
     - assets/icon_speaking_head.png
+    - assets/legal/terms_of_service.txt
+    - assets/legal/privacy_policy.txt
 
   # To add assets to your application, add an assets section, like this:
   # assets:
