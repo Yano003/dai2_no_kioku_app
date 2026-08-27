@@ -57,6 +57,33 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+  # アプリアイコンの生成に使う（実行時には使わない開発ツール）。
+  # `dart run flutter_launcher_icons` で android/ios 双方のアイコンを
+  # assets/icon/ 以下のソースから作り直す。
+  flutter_launcher_icons: ^0.14.4
+
+# キオクヲのアプリアイコン。ヒトコト株式会社様よりご提供（2026年8月27日）。
+# ソースは assets/icon/source.svg（ベクター原本）。
+# `dart run flutter_launcher_icons` を実行すると、ここに書かれた設定を元に
+# android/ios 両方のランチャーアイコンが assets/icon/ 以下の PNG から
+# 作り直される。アイコンを差し替える場合は、まず assets/icon/app_icon.png
+# （正方形・角丸なし・アルファ無し）と assets/icon/app_icon_foreground.png
+# （Android アダプティブアイコンの前景。66/108 セーフゾーンに収まる配置で
+# 透過 PNG）を更新してから、このコマンドを再実行すること。
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  # 背景レイヤーは単色でよいため画像を作らず、ブランドカラーをそのまま使う。
+  adaptive_icon_background: "#106681"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  # app_icon_foreground.png 側で既に 66/108 セーフゾーンぴったりの余白を
+  # 付けてあるため、ツール側の既定インセット（16%）は無効化する。
+  # 既定のままだと二重に余白が入り、絵柄が小さくなりすぎる。
+  adaptive_icon_foreground_inset: 0
+  # iOS の 1024×1024 は透過不可（Apple の規定）。
+  remove_alpha_ios: true
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
