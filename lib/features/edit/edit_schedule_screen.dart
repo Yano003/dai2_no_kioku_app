@@ -7,6 +7,7 @@ import '../../core/clock_time.dart';
 import '../../core/date_key.dart';
 import '../../core/date_label.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/clock_time_picker.dart';
 import '../../data/models/schedule.dart';
 import '../../domain/parser/schedule_parser.dart';
 import '../../providers.dart';
@@ -215,15 +216,12 @@ class _EditScheduleScreenState extends ConsumerState<EditScheduleScreen> {
   }
 
   Future<void> _pickTime() async {
-    final current = _time;
-    final selected = await showTimePicker(
+    final selected = await showClockTimePicker(
       context: context,
-      initialTime: current == null
-          ? const TimeOfDay(hour: 9, minute: 0)
-          : TimeOfDay(hour: current.hour, minute: current.minute),
+      initial: _time ?? const ClockTime(9, 0),
     );
     if (selected == null) return;
-    setState(() => _time = ClockTime(selected.hour, selected.minute));
+    setState(() => _time = selected);
   }
 
   @override

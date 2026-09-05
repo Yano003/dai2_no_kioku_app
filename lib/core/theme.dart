@@ -55,37 +55,45 @@ class AppTheme {
       // ここで決めるのは「デフォルトの大きさ」であり、上限ではない。
       // OS の文字サイズ設定は Flutter が自動で掛け算するため、
       // 利用者が拡大すればここで指定した値からさらに大きくなる。
+      //
+      // テスト後アンケート（2026/09/04）で「文字ちょっと小さく感じてます」と
+      // いう声があり、大見出しと注釈を除いて約1.1倍に引き上げた。
+      // 大見出しは元から十分に大きく、注釈は小さいままでよいとの判断。
+      // （クライアントご指示 2026/09/05）
       textTheme: const TextTheme(
-        // 画面そのものの見出し（S-02「『今日の安心カード』登録」）。
+        // 画面そのものの見出し（S-02「〈今日の安心カード〉登録」）。
         // その画面の主役として、カードの見出しより一段大きく取る。
+        // ここは「大見出し」にあたるため据え置き。
         headlineMedium: TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.w600,
           height: 1.35,
         ),
-        // カードの見出し（「今日は3つ覚えておけば大丈夫です」など）
+        // カードの見出し（「今日は3つ覚えておけば大丈夫です」など）25→27
         headlineSmall: TextStyle(
-          fontSize: 25,
+          fontSize: 27,
           fontWeight: FontWeight.w600,
           height: 1.4,
         ),
+        // 21→23
         titleLarge: TextStyle(
-          fontSize: 21,
+          fontSize: 23,
           fontWeight: FontWeight.w600,
           height: 1.4,
         ),
+        // 17→19
         titleMedium: TextStyle(
-          fontSize: 17,
+          fontSize: 19,
           fontWeight: FontWeight.w500,
           height: 1.5,
         ),
-        // 本文。予定名などの主役の文字。Material 既定の16から引き上げる。
-        bodyLarge: TextStyle(fontSize: 18, height: 1.6),
-        // 注釈類。ここは要件上「小さすぎないように」の対象外だが、
-        // 既定の14よりはわずかに上げて読みやすさを確保する。
+        // 本文。予定名などの主役の文字。18→20
+        bodyLarge: TextStyle(fontSize: 20, height: 1.6),
+        // 注釈類。要件上「小さすぎないように」の対象外であり、
+        // 今回の拡大からも外す。
         bodyMedium: TextStyle(fontSize: 15, height: 1.6),
-        // ボタンの文字。押す対象が読みにくいと操作をためらわせる。
-        labelLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        // ボタンの文字。押す対象が読みにくいと操作をためらわせる。18→20
+        labelLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
       ),
 
       filledButtonTheme: FilledButtonThemeData(

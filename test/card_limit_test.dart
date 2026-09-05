@@ -59,9 +59,6 @@ class _FakeScheduleRepository extends ScheduleRepository {
   ) async =>
       {};
 
-  @override
-  Future<Set<DateTime>> acknowledgedDates(DateTime from, DateTime to) async =>
-      {};
 }
 
 class _FakeNotificationService extends NotificationService {

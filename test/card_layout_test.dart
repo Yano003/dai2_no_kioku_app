@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// 画面イメージに合わせたカードの構成を固定する。
 ///
 /// 画面イメージのカードは、上から
-///   カードの名前 → 日付 → 本文 → 予定一覧 → 締めの一文 → ボタン
+///   カードの名前 → 日付 → 本文 → 予定一覧 → 結びの言葉
 /// の順に並ぶ。
 
 final _cardDate = DateTime(2026, 8, 4);
@@ -32,13 +32,11 @@ DayCard _card({
   required CardVariant variant,
   required int dayOffset,
   List<ScheduleEntry> entries = const [],
-  bool acknowledged = false,
 }) =>
     DayCard(
       date: _cardDate,
       entries: entries,
       variant: variant,
-      acknowledged: acknowledged,
       dayOffset: dayOffset,
     );
 
@@ -50,7 +48,6 @@ Future<void> _pump(WidgetTester tester, DayCard card) async {
           card: card,
           onToggleEntry: (_) {},
           onEditEntry: (_) {},
-          onAcknowledge: () {},
         ),
       ),
     ),
@@ -115,7 +112,7 @@ void main() {
   });
 
   group('前日夜のカード', () {
-    testWidgets('締めの一文とおやすみなさいボタンが出る', (tester) async {
+    testWidgets('その晩の一言とおやすみなさいが出る', (tester) async {
       await _pump(
         tester,
         _card(
@@ -126,7 +123,10 @@ void main() {
       );
 
       expect(find.text(AppStrings.cardPreviousNight), findsOneWidget);
-      expect(find.text(AppStrings.cardPreviousNightClosing), findsOneWidget);
+      expect(
+        find.text(AppStrings.previousNightClosingFor(_cardDate)),
+        findsOneWidget,
+      );
       expect(find.text(AppStrings.cardGoodNight), findsOneWidget);
       expect(find.byType(Checkbox), findsOneWidget);
     });
@@ -147,21 +147,38 @@ void main() {
       );
     });
 
-    testWidgets('おやすみなさいを押した後は、その言葉がそのまま残る', (tester) async {
-      // 別の一文に差し替えると、押した操作と表示がつながらない。
-      // （お客様ご指摘 2026/08/17）
+    testWidgets('おやすみなさいはボタンではなく言葉として置かれる', (tester) async {
+      // 押しても何も起きないボタンだったため廃止した。
+      // （クライアントご指示 2026/09/05）
       await _pump(
         tester,
         _card(
           variant: CardVariant.previousNight,
           dayOffset: 1,
           entries: [_entry('朝食後に薬')],
-          acknowledged: true,
         ),
       );
 
       expect(find.text(AppStrings.cardGoodNight), findsOneWidget);
       expect(find.byType(FilledButton), findsNothing);
+    });
+
+    testWidgets('予定がない日でもおやすみなさいは残る', (tester) async {
+      await _pump(
+        tester,
+        _card(variant: CardVariant.previousNight, dayOffset: 1),
+      );
+
+      expect(find.text(AppStrings.cardGoodNight), findsOneWidget);
+    });
+
+    testWidgets('その晩の一言は同じ日付なら変わらない', (tester) async {
+      // 開き直すたびに文言が変わると、さきほど読んだ言葉が消えたように
+      // 見えてしまうため、日付から決めている。
+      final first = AppStrings.previousNightClosingFor(DateTime(2026, 9, 6));
+      final second = AppStrings.previousNightClosingFor(DateTime(2026, 9, 6));
+      expect(first, second);
+      expect(AppStrings.cardPreviousNightClosings, contains(first));
     });
   });
 

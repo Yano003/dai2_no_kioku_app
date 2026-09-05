@@ -174,7 +174,6 @@ class _CardScreenState extends ConsumerState<CardScreen> {
                                 card: card,
                                 onToggleEntry: _toggleEntry,
                                 onEditEntry: _openEdit,
-                                onAcknowledge: () => _acknowledge(date),
                               ),
                       ),
                     );
@@ -198,10 +197,6 @@ class _CardScreenState extends ConsumerState<CardScreen> {
 
   void _toggleEntry(ScheduleEntry entry) {
     ref.read(cardsProvider.notifier).toggleCompleted(entry);
-  }
-
-  void _acknowledge(DateTime date) {
-    ref.read(cardsProvider.notifier).acknowledge(date);
   }
 
   /// S-07 修正画面を開く。（要件定義書 4.7）

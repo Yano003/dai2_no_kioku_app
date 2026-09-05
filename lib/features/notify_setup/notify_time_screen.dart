@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/app_strings.dart';
 import '../../core/clock_time.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/clock_time_picker.dart';
 import '../../data/settings_repository.dart';
 import '../../providers.dart';
 
@@ -51,17 +52,16 @@ class _NotifyTimeScreenState extends ConsumerState<NotifyTimeScreen> {
 
   Future<void> _pick({required bool isNight}) async {
     final current = isNight ? _nightTime! : _morningTime!;
-    final selected = await showTimePicker(
+    final selected = await showClockTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: current.hour, minute: current.minute),
+      initial: current,
     );
     if (selected == null) return;
     setState(() {
-      final picked = ClockTime(selected.hour, selected.minute);
       if (isNight) {
-        _nightTime = picked;
+        _nightTime = selected;
       } else {
-        _morningTime = picked;
+        _morningTime = selected;
       }
     });
   }

@@ -42,9 +42,6 @@ class _FakeScheduleRepository extends ScheduleRepository {
   ) async =>
       {for (final date in dateRange(from, to)) date: const []};
 
-  @override
-  Future<Set<DateTime>> acknowledgedDates(DateTime from, DateTime to) async =>
-      const {};
 }
 
 void main() {

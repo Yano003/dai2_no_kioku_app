@@ -6,6 +6,7 @@ import '../../core/app_strings.dart';
 import '../../core/clock_time.dart';
 import '../../core/legal_documents.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/clock_time_picker.dart';
 import '../../providers.dart';
 import '../input/input_screen.dart';
 import 'legal_document_screen.dart';
@@ -101,17 +102,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _pickTime({required bool isSleep}) async {
     final current = isSleep ? _sleepTime : _wakeTime;
-    final selected = await showTimePicker(
+    final selected = await showClockTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: current.hour, minute: current.minute),
+      initial: current,
     );
     if (selected == null) return;
     setState(() {
-      final picked = ClockTime(selected.hour, selected.minute);
       if (isSleep) {
-        _sleepTime = picked;
+        _sleepTime = selected;
       } else {
-        _wakeTime = picked;
+        _wakeTime = selected;
       }
     });
   }

@@ -107,6 +107,90 @@ void main() {
   });
 
   // ===========================================================================
+  // テスト後アンケート（2026/09/04）で挙がった、予定名に余計な語が残る問題。
+  // ===========================================================================
+  group('予定名に助詞・時間帯の語を残さない', () {
+    // 4人中2人がこの言い方で手直しを強いられた。
+    test('「から」：明日17時から打ち合わせ', () {
+      final result = _parseOne('明日17時から打ち合わせ');
+      expect(result.title, '打ち合わせ');
+      expect(result.date, DateTime(2026, 8, 5));
+      expect(result.time, const ClockTime(17, 0));
+    });
+
+    test('「からの」：明日17時からの打ち合わせ', () {
+      expect(_parseOne('明日17時からの打ち合わせ').title, '打ち合わせ');
+    });
+
+    test('「まで」：明日15時まで会議', () {
+      final result = _parseOne('明日15時まで会議');
+      expect(result.title, '会議');
+      expect(result.time, const ClockTime(15, 0));
+    });
+
+    // 朝カードに「朝 病院で採血」と表示されていた件。
+    test('「朝」：朝9時に病院で採血', () {
+      final result = _parseOne('朝9時に病院で採血');
+      expect(result.title, '病院で採血');
+      expect(result.time, const ClockTime(9, 0));
+    });
+
+    test('「朝」が語の一部なら時間帯として扱わない：明日朝食は7時', () {
+      final result = _parseOne('明日朝食は7時');
+      // 「朝」を時間帯として食べると予定名が「食は」になってしまう。
+      // 末尾の「は」が残るのは従来からの挙動。
+      expect(result.title, '朝食は');
+      expect(result.time, const ClockTime(7, 0));
+    });
+  });
+
+  // ===========================================================================
+  // 「明日8時」と登録した方が夜20時のつもりだった件（アンケート 2026/09/04）。
+  // 時間帯の語を添えれば意図どおりに読めるようにする。
+  // ===========================================================================
+  group('時間帯の語による午前・午後の解釈', () {
+    test('夜8時は20時', () {
+      final result = _parseOne('明日夜8時に会議');
+      expect(result.title, '会議');
+      expect(result.time, const ClockTime(20, 0));
+    });
+
+    test('晩8時は20時', () {
+      expect(_parseOne('明日晩8時に会議').time, const ClockTime(20, 0));
+    });
+
+    test('夕方5時は17時', () {
+      expect(_parseOne('明日夕方5時に散歩').time, const ClockTime(17, 0));
+    });
+
+    test('夕方は「夕」で切れない', () {
+      expect(_parseOne('明日夕方5時に散歩').title, '散歩');
+    });
+
+    test('昼2時は14時', () {
+      expect(_parseOne('明日昼2時に打ち合わせ').time, const ClockTime(14, 0));
+    });
+
+    test('昼12時は12時のまま', () {
+      expect(_parseOne('明日昼12時に昼食').time, const ClockTime(12, 0));
+    });
+
+    test('朝8時は8時のまま', () {
+      expect(_parseOne('明日朝8時に出発').time, const ClockTime(8, 0));
+    });
+
+    test('時間帯の語が無ければ従来どおり：明日8時', () {
+      expect(_parseOne('明日8時に出発').time, const ClockTime(8, 0));
+    });
+
+    test('◯時◯分にも効く：明日夜7時30分に食事', () {
+      final result = _parseOne('明日夜7時30分に食事');
+      expect(result.title, '食事');
+      expect(result.time, const ClockTime(19, 30));
+    });
+  });
+
+  // ===========================================================================
   // 音声認識の表記ゆれ。同じ発話でも端末により表記が変わるため吸収する。
   // ===========================================================================
   group('表記ゆれの吸収', () {

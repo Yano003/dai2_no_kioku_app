@@ -6,6 +6,7 @@ import '../../core/app_strings.dart';
 import '../../core/date_key.dart';
 import '../../core/date_label.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/clock_time_picker.dart';
 import '../../domain/parser/parsed_schedule.dart';
 import '../../providers.dart';
 import '../card/card_screen.dart';
@@ -584,14 +585,12 @@ class _TimeChip extends StatelessWidget {
 
   Future<void> _pick(BuildContext context) async {
     final current = draft.time;
-    final selected = await showTimePicker(
+    final selected = await showClockTimePicker(
       context: context,
-      initialTime: current == null
-          ? const TimeOfDay(hour: 9, minute: 0)
-          : TimeOfDay(hour: current.hour, minute: current.minute),
+      initial: current ?? const ClockTime(9, 0),
     );
     if (selected == null) return;
-    draft.time = ClockTime(selected.hour, selected.minute);
+    draft.time = selected;
     onChanged();
   }
 

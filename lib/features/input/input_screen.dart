@@ -137,13 +137,22 @@ class _InputScreenState extends ConsumerState<InputScreen> {
                             const SizedBox(height: 48),
                             // この画面が何をする場所かを最初に示す見出し。
                             // 画面の主役として、カードの見出しより一段大きく取る。
+                            //
+                            // 色はカードの名前と同じ青緑。同じ「安心カード」を
+                            // 指す言葉を同じ色で揃える。
+                            // （クライアントご指示 2026/09/05）
                             Text(
                               AppStrings.registerScreenTitle,
-                              style: theme.textTheme.headlineMedium,
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                color: theme.colorScheme.primary,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                             Expanded(
-                              child: Center(
+                              // 説明とアイコンは中央よりやや上に置き、その下に
+                              // 入力例を収める。（クライアントご指示 2026/09/05）
+                              child: Align(
+                                alignment: const Alignment(0, -0.4),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -193,6 +202,27 @@ class _InputScreenState extends ConsumerState<InputScreen> {
                                           AppStrings.errorSpeechUnavailable,
                                           style: theme.textTheme.bodyLarge,
                                           textAlign: TextAlign.center,
+                                        ),
+                                      // 話し方の例。文字入力の画面と同じものを
+                                      // 同じ体裁で置く。「明日8時」のように
+                                      // 朝夕の取り違えが起きた登録があったため、
+                                      // 声で入れる場面でも先に例を見せる。
+                                      // （クライアントご指示 2026/09/05）
+                                      for (final example
+                                          in AppStrings.inputExamples)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 2,
+                                          ),
+                                          child: Text(
+                                            example,
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: theme.colorScheme
+                                                      .onSurfaceVariant,
+                                                ),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
                                     ],
                                   ],

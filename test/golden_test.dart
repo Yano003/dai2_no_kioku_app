@@ -75,8 +75,7 @@ DayCard _card({
       date: date ?? _cardDate,
       entries: entries,
       variant: variant,
-      acknowledged: false,
-      dayOffset: dayOffset,
+        dayOffset: dayOffset,
     );
 
 ThemeData get _theme {
@@ -148,9 +147,6 @@ class _FakeScheduleRepository extends ScheduleRepository {
   ) async =>
       {};
 
-  @override
-  Future<Set<DateTime>> acknowledgedDates(DateTime from, DateTime to) async =>
-      {};
 }
 
 /// Image.asset は非同期に読み込まれるため、そのまま撮ると画像が写らない。
@@ -229,7 +225,6 @@ void main() {
         ),
         onToggleEntry: (_) {},
         onEditEntry: (_) {},
-        onAcknowledge: () {},
       ),
       'card_morning',
     );
@@ -255,7 +250,6 @@ void main() {
         ),
         onToggleEntry: (_) {},
         onEditEntry: (_) {},
-        onAcknowledge: () {},
       ),
       'card_previous_night',
     );
@@ -277,7 +271,6 @@ void main() {
         ),
         onToggleEntry: (_) {},
         onEditEntry: (_) {},
-        onAcknowledge: () {},
       ),
       'card_daytime',
     );
@@ -300,7 +293,6 @@ void main() {
         ),
         onToggleEntry: (_) {},
         onEditEntry: (_) {},
-        onAcknowledge: () {},
       ),
       'card_daytime_all_done',
     );
@@ -323,7 +315,6 @@ void main() {
         ),
         onToggleEntry: (_) {},
         onEditEntry: (_) {},
-        onAcknowledge: () {},
       ),
       'card_past_all_done',
     );
@@ -346,7 +337,6 @@ void main() {
         ),
         onToggleEntry: (_) {},
         onEditEntry: (_) {},
-        onAcknowledge: () {},
       ),
       'card_past_remaining',
     );
@@ -361,7 +351,6 @@ void main() {
         card: _card(variant: CardVariant.previousNight, dayOffset: 1),
         onToggleEntry: (_) {},
         onEditEntry: (_) {},
-        onAcknowledge: () {},
       ),
       'card_previous_night_empty',
     );

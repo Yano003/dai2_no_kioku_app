@@ -11,8 +11,11 @@ import '../../domain/card/day_card.dart';
 ///
 /// 画面イメージのカードは、上から
 ///   カードの名前 → 日付 → 本文 → 予定一覧 → 全部できたときの一言
-///   → 締めの一文 → ボタン
+///   → 結びの言葉
 /// の順に並ぶ。表示パターンごとの出し分けは [DayCard.variant] から決まる。
+///
+/// 末尾にあった「おやすみなさい」「いってらっしゃい」ボタンは 2026/09/05 に
+/// 廃止し、言葉だけを残している。（クライアントご指示）
 ///
 /// 文言はすべて仮であり、[AppStrings] の差し替えで確定する。
 class DayCardView extends StatelessWidget {
@@ -21,7 +24,6 @@ class DayCardView extends StatelessWidget {
     required this.card,
     required this.onToggleEntry,
     required this.onEditEntry,
-    required this.onAcknowledge,
   });
 
   final DayCard card;
@@ -29,9 +31,6 @@ class DayCardView extends StatelessWidget {
 
   /// 予定の行から S-07 修正画面を開く。（要件定義書 4.7）
   final void Function(ScheduleEntry entry) onEditEntry;
-
-  /// 「おやすみなさい」「いってらっしゃい」を押したとき。
-  final VoidCallback onAcknowledge;
 
   @override
   Widget build(BuildContext context) {
@@ -78,12 +77,7 @@ class DayCardView extends StatelessWidget {
                 ),
               ),
               _AllDoneMessage(card: card),
-              _ClosingLine(card: card),
-              const SizedBox(height: 12),
-              _ActionButton(
-                card: card,
-                onAcknowledge: onAcknowledge,
-              ),
+              _ClosingLines(card: card),
             ],
           ),
         ),
@@ -170,38 +164,55 @@ class _AllDoneMessage extends StatelessWidget {
   }
 }
 
-/// 予定一覧の下に添える一文。
-class _ClosingLine extends StatelessWidget {
-  const _ClosingLine({required this.card});
+/// 予定一覧の下に添える結びの言葉。
+///
+/// 前日夜は「その晩の一言」＋「おやすみなさい」の2行、当日朝は「いい1日を」の
+/// 1行。どちらも同じ大きさで並べる。（クライアントご指示 2026/09/05）
+///
+/// 以前はここに「おやすみなさい」「いってらっしゃい」のボタンを置いていたが、
+/// 押しても何も起きないボタンだったため廃止し、言葉だけを残している。
+class _ClosingLines extends StatelessWidget {
+  const _ClosingLines({required this.card});
 
   final DayCard card;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final text = _closingFor(card);
-    if (text == null) return const SizedBox.shrink();
+    final lines = _closingFor(card);
+    if (lines.isEmpty) return const SizedBox.shrink();
+
+    final style = theme.textTheme.bodyLarge?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
-      child: Text(
-        text,
-        style: theme.textTheme.bodyLarge?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final line in lines) Text(line, style: style),
+        ],
       ),
     );
   }
 
-  static String? _closingFor(DayCard card) {
+  static List<String> _closingFor(DayCard card) {
     switch (card.variant) {
       case CardVariant.previousNight:
-        return card.isEmpty ? null : AppStrings.cardPreviousNightClosing;
+        return [
+          // 予定がない日に「明日はこれだけ〜」の締めを置かないのは
+          // 従来どおり。「おやすみなさい」はどちらの日にも残す。
+          if (!card.isEmpty) AppStrings.previousNightClosingFor(card.date),
+          AppStrings.cardGoodNight,
+        ];
       case CardVariant.morning:
+        return const [AppStrings.cardHaveANiceDay];
       case CardVariant.daytime:
       case CardVariant.future:
       case CardVariant.past:
-        return null;
+        return const [];
     }
   }
 }
@@ -317,70 +328,4 @@ class _EntryRow extends StatelessWidget {
   }
 
   static const _weekdayNames = ['月', '火', '水', '木', '金', '土', '日'];
-}
-
-/// 表示パターンごとのボタン。（要件定義書 4.5 の表・画面イメージ）
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.card,
-    required this.onAcknowledge,
-  });
-
-  final DayCard card;
-  final VoidCallback onAcknowledge;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final label = _labelFor(card);
-    if (label == null) return const SizedBox.shrink();
-
-    // 押したあとは、押した言葉をそのまま静かな文字で残す。
-    // （お客様ご指摘 2026/08/17）ボタンが消えるだけだと押せたのか分からず、
-    // 別の一文に差し替えると、何を押したのかとつながらないため。
-    if (card.acknowledged) {
-      return Text(
-        label,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      );
-    }
-
-    return Align(
-      alignment: Alignment.centerRight,
-      child: FilledButton(
-        onPressed: onAcknowledge,
-        style: _compact,
-        child: Text(label),
-      ),
-    );
-  }
-
-  /// カード内のボタンは内容の幅に収める。
-  ///
-  /// 画面全体のボタンは押しやすさを優先して横幅いっぱいにしているが、
-  /// カード内は画面イメージのとおり右下に小さく置く。高さは
-  /// タップ領域の最小値を保つ。
-  static final _compact = FilledButton.styleFrom(
-    minimumSize: const Size(0, AppTheme.minTapSize),
-    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-  );
-
-  static String? _labelFor(DayCard card) {
-    switch (card.variant) {
-      case CardVariant.previousNight:
-        return AppStrings.cardGoodNight;
-      case CardVariant.morning:
-        return AppStrings.cardHaveANiceDay;
-      case CardVariant.daytime:
-        // 「確認しました」ボタンは第2.0版で廃止。実質的にアプリを閉じるだけの
-        // 操作のため不要と判断された。（要件定義書 4.5）
-        return null;
-      case CardVariant.future:
-      case CardVariant.past:
-        return null;
-    }
-  }
 }

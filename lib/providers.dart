@@ -154,7 +154,6 @@ class CardsNotifier extends AsyncNotifier<CardWindow> {
     final settings = await ref.read(settingsProvider.future);
 
     final entries = await repository.entriesForRange(_from, _to);
-    final acknowledged = await repository.acknowledgedDates(_from, _to);
     final now = DateTime.now();
 
     final cards = <DateTime, DayCard>{};
@@ -165,7 +164,6 @@ class CardsNotifier extends AsyncNotifier<CardWindow> {
         now: now,
         morningNotifyTime: settings.morningNotifyTime,
         nightNotifyTime: settings.nightNotifyTime,
-        acknowledged: acknowledged.contains(date),
       );
     });
 
@@ -198,12 +196,6 @@ class CardsNotifier extends AsyncNotifier<CardWindow> {
           date: entry.date,
           completed: !entry.isCompleted,
         );
-    await _refresh();
-  }
-
-  /// 「確認しました」を記録する。（確認事項 No.4）
-  Future<void> acknowledge(DateTime date) async {
-    await ref.read(scheduleRepositoryProvider).acknowledgeCard(date);
     await _refresh();
   }
 

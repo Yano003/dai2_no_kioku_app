@@ -45,13 +45,12 @@ DayCard _card({
     date: DateTime(2026, 8, 4),
     entries: entries,
     variant: variant,
-    acknowledged: false,
     dayOffset: dayOffset,
   );
 }
 
 void main() {
-  testWidgets('当日朝のカードに件数とボタンが出る', (tester) async {
+  testWidgets('当日朝のカードに件数と結びの言葉が出る', (tester) async {
     await tester.pumpWidget(
       _wrap(
         DayCardView(
@@ -61,7 +60,6 @@ void main() {
           ),
           onToggleEntry: (_) {},
           onEditEntry: (_) {},
-          onAcknowledge: () {},
         ),
       ),
     );
@@ -83,7 +81,6 @@ void main() {
           card: _card(variant: CardVariant.daytime),
           onToggleEntry: (_) {},
           onEditEntry: (_) {},
-          onAcknowledge: () {},
         ),
       ),
     );
@@ -110,7 +107,6 @@ void main() {
           ),
           onToggleEntry: (_) {},
           onEditEntry: (_) {},
-          onAcknowledge: () {},
         ),
       ),
     );
@@ -141,7 +137,6 @@ void main() {
           card: card,
           onToggleEntry: (_) {},
           onEditEntry: (_) {},
-          onAcknowledge: () {},
         ),
       ),
     );
@@ -160,7 +155,6 @@ void main() {
           ),
           onToggleEntry: (_) {},
           onEditEntry: (_) {},
-          onAcknowledge: () {},
         ),
       ),
     );
@@ -180,7 +174,6 @@ void main() {
           ),
           onToggleEntry: (entry) => toggled = entry,
           onEditEntry: (_) {},
-          onAcknowledge: () {},
         ),
       ),
     );
@@ -202,7 +195,6 @@ void main() {
           ),
           onToggleEntry: (_) {},
           onEditEntry: (entry) => edited = entry,
-          onAcknowledge: () {},
         ),
       ),
     );
@@ -231,7 +223,6 @@ void main() {
           ),
           onToggleEntry: (_) {},
           onEditEntry: (_) {},
-          onAcknowledge: () {},
         ),
         textScale: 2.0,
       ),

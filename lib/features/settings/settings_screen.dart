@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/app_strings.dart';
 import '../../core/clock_time.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/clock_time_picker.dart';
 import '../../data/settings_repository.dart';
 import '../../providers.dart';
 
@@ -47,14 +48,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     });
   }
 
-  Future<ClockTime?> _pickTime(ClockTime current) async {
-    final selected = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: current.hour, minute: current.minute),
-    );
-    if (selected == null) return null;
-    return ClockTime(selected.hour, selected.minute);
-  }
+  Future<ClockTime?> _pickTime(ClockTime current) =>
+      showClockTimePicker(context: context, initial: current);
 
   Future<void> _changeNotifyTime(
     AppSettings settings, {

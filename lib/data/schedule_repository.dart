@@ -262,31 +262,8 @@ class ScheduleRepository {
     return rows.isEmpty ? null : Schedule.fromMap(rows.first);
   }
 
-  // ---------------------------------------------------------------------------
-  // カード単位の状態
-  // ---------------------------------------------------------------------------
-
-  /// 「確認しました」を押した日付を記録する。（確認事項 No.4）
-  Future<void> acknowledgeCard(DateTime date) async {
-    final db = await _database;
-    await db.insert(
-      'card_states',
-      {
-        'date': toDateKey(date),
-        'acknowledged_at': DateTime.now().toIso8601String(),
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<Set<DateTime>> acknowledgedDates(DateTime from, DateTime to) async {
-    final db = await _database;
-    final rows = await db.query(
-      'card_states',
-      columns: ['date'],
-      where: 'acknowledged_at IS NOT NULL AND date >= ? AND date <= ?',
-      whereArgs: [toDateKey(from), toDateKey(to)],
-    );
-    return rows.map((row) => fromDateKey(row['date']! as String)).toSet();
-  }
+  // カード単位の状態（card_states テーブル）は、「おやすみなさい」
+  // 「いってらっしゃい」ボタンの廃止（2026/09/05）にともなって使わなくなった。
+  // テーブル自体は残してある。AppDatabase にマイグレーションの仕組みが無く、
+  // 配布済みの端末と食い違わせないため。次にスキーマを変える機会に片付ける。
 }

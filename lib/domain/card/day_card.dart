@@ -6,10 +6,10 @@ import '../parser/parsed_schedule.dart';
 /// 安心カードの表示パターン。（要件定義書 4.5「カードの表示パターン」）
 enum CardVariant {
   /// 前日夜。翌日のカードを、その前夜に見ている状態。
-  /// 「明日はこれだけ覚えておけば大丈夫です」＋おやすみなさいボタン。
+  /// 「明日はこれだけ覚えておけば大丈夫です」＋その晩の一言＋おやすみなさい。
   previousNight,
 
-  /// 当日朝。「今日は◯つ覚えておけば大丈夫です」＋いってらっしゃいボタン。
+  /// 当日朝。「今日は◯つ覚えておけば大丈夫です」＋いい1日を。
   morning,
 
   /// 当日日中。予定一覧のみ。夜になっても当日のカードはこのままで、
@@ -31,7 +31,6 @@ class DayCard {
     required this.date,
     required this.entries,
     required this.variant,
-    required this.acknowledged,
     required this.dayOffset,
     this.hiddenCount = 0,
   });
@@ -55,9 +54,6 @@ class DayCard {
 
   /// 表示パターン。
   final CardVariant variant;
-
-  /// 「確認しました」を押し済みか。
-  final bool acknowledged;
 
   /// 予定が1件も無い日。S-10（空表示）で扱う。
   bool get isEmpty => entries.isEmpty;
@@ -90,7 +86,6 @@ DayCard buildDayCard({
   required DateTime now,
   required ClockTime morningNotifyTime,
   required ClockTime nightNotifyTime,
-  bool acknowledged = false,
 }) {
   final cardDate = dateOnly(date);
   final today = dateOnly(now);
@@ -108,7 +103,6 @@ DayCard buildDayCard({
     date: cardDate,
     entries: visible,
     hiddenCount: entries.length - visible.length,
-    acknowledged: acknowledged,
     dayOffset: cardDate.difference(today).inDays,
     variant: _resolveVariant(
       cardDate: cardDate,
