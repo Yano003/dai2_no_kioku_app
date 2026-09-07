@@ -201,10 +201,11 @@ class _ClosingLines extends StatelessWidget {
   static List<String> _closingFor(DayCard card) {
     switch (card.variant) {
       case CardVariant.previousNight:
+        // 予定がない日にも一言を出す。寝る前に開く方がいるため、
+        // その晩をねぎらう言葉は予定の有無に関わらず添える。
+        // （クライアントご指示 2026/09/07）
         return [
-          // 予定がない日に「明日はこれだけ〜」の締めを置かないのは
-          // 従来どおり。「おやすみなさい」はどちらの日にも残す。
-          if (!card.isEmpty) AppStrings.previousNightClosingFor(card.date),
+          AppStrings.previousNightClosingFor(card.date),
           AppStrings.cardGoodNight,
         ];
       case CardVariant.morning:

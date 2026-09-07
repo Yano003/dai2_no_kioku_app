@@ -38,9 +38,29 @@ class _ClockTimePickerDialog extends StatefulWidget {
   State<_ClockTimePickerDialog> createState() => _ClockTimePickerDialogState();
 }
 
+/// 分の刻み。予定の時刻に1分単位が要る場面はほとんど無く、刻みを粗くする
+/// ほど選ぶ手数が減る。（クライアントご指示 2026/09/07）
+const _minuteStep = 5;
+
+final _hourValues = List<int>.generate(24, (index) => index);
+
+/// 分の選択肢。[_minuteStep] 刻みに、初期値がその倍数でなければそれを足す。
+///
+/// 「9時7分」のように声から入った時刻を、ダイアログを開いただけで
+/// 勝手に丸めてしまわないようにするため。
+List<int> _minuteValuesFor(int initial) {
+  final values = <int>{
+    for (var minute = 0; minute < 60; minute += _minuteStep) minute,
+    initial,
+  }.toList()
+    ..sort();
+  return values;
+}
+
 class _ClockTimePickerDialogState extends State<_ClockTimePickerDialog> {
   late int _hour = widget.initial.hour;
   late int _minute = widget.initial.minute;
+  late final List<int> _minuteValues = _minuteValuesFor(widget.initial.minute);
 
   @override
   Widget build(BuildContext context) {
@@ -82,13 +102,13 @@ class _ClockTimePickerDialogState extends State<_ClockTimePickerDialog> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _Wheel(
-                      count: 24,
+                      values: _hourValues,
                       initialValue: _hour,
                       suffix: AppStrings.timePickerHourSuffix,
                       onChanged: (value) => setState(() => _hour = value),
                     ),
                     _Wheel(
-                      count: 60,
+                      values: _minuteValues,
                       initialValue: _minute,
                       suffix: AppStrings.timePickerMinuteSuffix,
                       onChanged: (value) => setState(() => _minute = value),
@@ -115,16 +135,18 @@ class _ClockTimePickerDialogState extends State<_ClockTimePickerDialog> {
   }
 }
 
-/// 数字ひと列分の輪。0 から [count]-1 までを繰り返し送れる。
+/// 数字ひと列分の輪。[values] を順に、端までいったら先頭に戻って送れる。
 class _Wheel extends StatefulWidget {
   const _Wheel({
-    required this.count,
+    required this.values,
     required this.initialValue,
     required this.suffix,
     required this.onChanged,
   });
 
-  final int count;
+  /// 上から順に並べる値。時なら0〜23、分なら5刻み。
+  final List<int> values;
+
   final int initialValue;
 
   /// 「時」「分」。数字の右に添えて、何を選んでいるかを示す。
@@ -138,7 +160,10 @@ class _Wheel extends StatefulWidget {
 
 class _WheelState extends State<_Wheel> {
   late final FixedExtentScrollController _controller =
-      FixedExtentScrollController(initialItem: widget.initialValue);
+      FixedExtentScrollController(
+    // 一覧に無い値を渡された場合でも先頭から始めて破綻させない。
+    initialItem: widget.values.indexOf(widget.initialValue).clamp(0, 1 << 30),
+  );
 
   late int _selected = widget.initialValue;
 
@@ -161,14 +186,14 @@ class _WheelState extends State<_Wheel> {
         perspective: 0.002,
         physics: const FixedExtentScrollPhysics(),
         onSelectedItemChanged: (index) {
-          final value = index % widget.count;
+          final value = widget.values[index % widget.values.length];
           setState(() => _selected = value);
           widget.onChanged(value);
         },
-        // 0時と23時、0分と59分が地続きになり、行き過ぎても戻せる。
+        // 先頭と末尾が地続きになり、行き過ぎても戻せる。
         childDelegate: ListWheelChildLoopingListDelegate(
           children: [
-            for (var value = 0; value < widget.count; value++)
+            for (final value in widget.values)
               _Item(
                 value: value,
                 suffix: widget.suffix,

@@ -134,9 +134,10 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
+    // 分は5分刻み。2行分で 0分 → 10分。
     await tester.drag(
       find.byType(ListWheelScrollView).last,
-      const Offset(0, -_itemExtent * 5),
+      const Offset(0, -_itemExtent * 2),
     );
     await tester.pumpAndSettle();
 
@@ -144,7 +145,67 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(result?.hour, 9, reason: '時の列は動かしていない');
-    expect(result?.minute, 5);
+    expect(result?.minute, 10);
+  });
+
+  testWidgets('分は5分刻みで並ぶ', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showClockTimePicker(
+                context: context,
+                initial: const ClockTime(9, 0),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('5分'), findsWidgets);
+    expect(find.text('10分'), findsWidgets);
+    // 刻みの間の数字は出さない。
+    expect(find.text('1分'), findsNothing);
+    expect(find.text('7分'), findsNothing);
+  });
+
+  testWidgets('5分刻みでない時刻は、開いただけでは丸めない', (tester) async {
+    // 「9時7分」のように声から入った時刻を、確認しただけで
+    // 別の時刻に変えてしまわないようにする。
+    ClockTime? result;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async => result = await showClockTimePicker(
+                context: context,
+                initial: const ClockTime(9, 7),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('7分'), findsWidgets);
+
+    await tester.tap(find.text(AppStrings.timePickerConfirm));
+    await tester.pumpAndSettle();
+
+    expect(result, const ClockTime(9, 7));
   });
 
   testWidgets('0時をまたいで戻せる', (tester) async {

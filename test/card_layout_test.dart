@@ -163,12 +163,18 @@ void main() {
       expect(find.byType(FilledButton), findsNothing);
     });
 
-    testWidgets('予定がない日でもおやすみなさいは残る', (tester) async {
+    testWidgets('予定がない日でも、その晩の一言とおやすみなさいが出る', (tester) async {
+      // 寝る前に開く方がいるため、予定の有無に関わらず一言を添える。
+      // （クライアントご指示 2026/09/07）
       await _pump(
         tester,
         _card(variant: CardVariant.previousNight, dayOffset: 1),
       );
 
+      expect(
+        find.text(AppStrings.previousNightClosingFor(_cardDate)),
+        findsOneWidget,
+      );
       expect(find.text(AppStrings.cardGoodNight), findsOneWidget);
     });
 
