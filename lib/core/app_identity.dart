@@ -18,7 +18,7 @@
 ///   3. ios/Runner/Info.plist の CFBundleDisplayName
 ///
 /// ■ パッケージ名（アプリケーション ID）は別物
-/// jp.co.hitokoto.kiokuwo はストア公開後に変更できない。
+/// com.hitokoto.kiokuwo はストア公開後に変更できない。
 /// 表示名の変更に引きずられて変えないこと。
 library;
 

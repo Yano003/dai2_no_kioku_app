@@ -1,4 +1,4 @@
-﻿package jp.co.hitokoto.kiokuwo
+﻿package com.hitokoto.kiokuwo
 
 import io.flutter.embedding.android.FlutterActivity
 

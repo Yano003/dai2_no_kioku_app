@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "jp.co.hitokoto.kiokuwo"
+    namespace = "com.hitokoto.kiokuwo"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,9 +21,11 @@ android {
     defaultConfig {
         // アプリケーション ID。**ストア公開後は変更できない。**
         // アプリ名「キオクヲ」の確定（2026/08/07）に合わせて確定させた。
-        // ヒトコト株式会社様の実ドメインが jp.co.hitokoto と異なる場合は、
-        // 初回申請前にここを合わせること。申請後は変更できない。
-        applicationId = "jp.co.hitokoto.kiokuwo"
+        //
+        // 当初は jp.co.hitokoto.kiokuwo としていたが、Apple 側に登録済みの
+        // Bundle ID が com.hitokoto.kiokuwo であることを確認したため、
+        // 初回申請前に両 OS で揃えた。（2026/09/14 クライアントご確認）
+        applicationId = "com.hitokoto.kiokuwo"
         // 対応 OS バージョンの下限。
         // 要件定義書 第2.0版 8章：目安として Android 9 以上。
         // 確認事項 No.6 のご回答は「他の一般的なアプリと同等」。

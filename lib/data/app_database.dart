@@ -23,7 +23,7 @@ class AppDatabase {
   /// アプリのデータ全体がバックアップ対象外になるため、ここでの対応は不要。
   /// （弁護士レビュー 2026/08/26 対応）
   static const _backupExclusionChannel =
-      MethodChannel('jp.co.hitokoto.kiokuwo/backup_exclusion');
+      MethodChannel('com.hitokoto.kiokuwo/backup_exclusion');
 
   Database? _database;
 

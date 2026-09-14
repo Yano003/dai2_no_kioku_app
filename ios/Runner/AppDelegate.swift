@@ -41,7 +41,7 @@ import UserNotifications
     // 絶対パスを渡してもらい、ここでファイル属性を立てる。
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "BackupExclusionChannel") {
       let channel = FlutterMethodChannel(
-        name: "jp.co.hitokoto.kiokuwo/backup_exclusion",
+        name: "com.hitokoto.kiokuwo/backup_exclusion",
         binaryMessenger: registrar.messenger()
       )
       channel.setMethodCallHandler { call, result in
