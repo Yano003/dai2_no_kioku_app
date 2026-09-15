@@ -61,7 +61,7 @@ class AppStrings {
   static const onboardingWelcomeTitle = 'ようこそ';
 
   /// 全角40文字以内。
-  static const onboardingWelcomeBody = '予定を声や文字で簡潔に「今日の安心カード」に残して、思い出しやすくします。';
+  static const onboardingWelcomeBody = '予定を声や文字で簡潔に〈今日の安心カード〉に残して、思い出しやすくします。';
 
   /// 全角20文字以内。
   static const onboardingMicTitle = '声で登録するために';
@@ -70,7 +70,7 @@ class AppStrings {
   static const onboardingMicBody = '予定を声で登録するために、スマートフォン内蔵のマイクを使います。';
 
   static const onboardingSpeechTitle = '話した言葉を文字にするために';
-  static const onboardingSpeechBody = '話した内容を文字にして、「今日の安心カード」に残します。';
+  static const onboardingSpeechBody = '話した内容を文字にして、〈今日の安心カード〉に残します。';
 
   static const onboardingNotificationTitle = 'お知らせを届けるために';
   static const onboardingNotificationBody = '前の日の夜と当日の朝に、そっとお知らせします。';
@@ -78,7 +78,7 @@ class AppStrings {
   /// 許可しなくても使えることを添える。（要件定義書 4.1）
   /// 全角30文字以内。
   static const onboardingSpeechOptional = '許可しなくても、文字で入力してお使いいただけます。';
-  static const onboardingNotificationOptional = '許可しなくても、アプリを開けば「今日の安心カード」を見られます。';
+  static const onboardingNotificationOptional = '許可しなくても、アプリを開けば〈今日の安心カード〉を見られます。';
 
   /// あとから設定画面で有効にできることの案内。
   static const onboardingLaterNote = 'あとから設定で変えられます。';
@@ -437,7 +437,7 @@ class AppStrings {
   // ---------------------------------------------------------------------------
 
   /// 聞き取れなかった場合。「聞き取れませんでした」で終わらせない。（要件定義書 4.9）
-  static const errorSpeechEmpty = 'もう一度、お願いします。';
+  static const errorSpeechEmpty = 'もう一度お願いします。';
 
   /// 一部だけ聞き取れた場合の案内。
   static const errorSpeechPartial = '聞き取れた分を残しました。日付をお選びください。';
